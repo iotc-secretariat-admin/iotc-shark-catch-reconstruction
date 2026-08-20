@@ -1,0 +1,32 @@
+# R
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Raw IOTC data
+data/raw/rc/*
+data/raw/ca/*
+data/raw/ef/*
+data/raw/external/*
+
+# Large intermediate data
+data/interim/*
+data/processed/*
+
+# Keep directory structure
+!data/raw/rc/.gitkeep
+!data/raw/ca/.gitkeep
+!data/raw/ef/.gitkeep
+!data/raw/external/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Temporary files
+*.tmp
+*.log
+~$*
+
+# OS
+.DS_Store
+Thumbs.db
