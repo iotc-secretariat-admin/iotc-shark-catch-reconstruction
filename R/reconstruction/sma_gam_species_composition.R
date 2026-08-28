@@ -567,10 +567,6 @@ print(
 )
 
 
-write_csv(
-  sma_gam_inventory,
-  "outputs/sma/gam/sma_gam_training_inventory.csv"
-)
 
 
 # =============================================================================
@@ -692,11 +688,6 @@ print(
   n = Inf
 )
 
-
-write_csv(
-  sma_shark_response_summary,
-  "outputs/sma/gam/sma_shark_response_summary.csv"
-)
 
 
 # =============================================================================
@@ -955,11 +946,6 @@ print(
   sma_shark_model_comparison
 )
 
-
-write_csv(
-  sma_shark_model_comparison,
-  "outputs/sma/gam/sma_shark_model_comparison.csv"
-)
 
 
 # =============================================================================
@@ -1253,16 +1239,6 @@ print(
 )
 
 
-write_csv(
-  sma_shark_lofo_summary,
-  "outputs/sma/gam/sma_shark_lofo_summary.csv"
-)
-
-write_csv(
-  sma_shark_lofo_by_group,
-  "outputs/sma/gam/sma_shark_lofo_by_group.csv"
-)
-
 
 # =============================================================================
 # 14. Plot SKH-model LOFO performance
@@ -1327,17 +1303,6 @@ p_sma_shark_lofo <- ggplot(
 
 p_sma_shark_lofo
 
-
-ggsave(
-
-  "outputs/sma/gam/figures/sma_shark_gam_lofo.png",
-
-  p_sma_shark_lofo,
-
-  width = 8,
-  height = 6,
-  dpi = 300
-)
 
 
 # =============================================================================
@@ -1457,11 +1422,6 @@ print(
 )
 
 
-write_csv(
-  sma_mako_response_summary,
-  "outputs/sma/gam/sma_mako_response_summary.csv"
-)
-
 
 # =============================================================================
 # 17. Simple empirical benchmark for MAK allocation
@@ -1517,11 +1477,6 @@ print(
   n = Inf
 )
 
-
-write_csv(
-  sma_mako_benchmark,
-  "outputs/sma/gam/sma_mako_empirical_benchmark.csv"
-)
 
 
 # =============================================================================
@@ -1686,11 +1641,6 @@ print(
   sma_mako_model_comparison
 )
 
-
-write_csv(
-  sma_mako_model_comparison,
-  "outputs/sma/gam/sma_mako_model_comparison.csv"
-)
 
 
 summary(
@@ -1954,16 +1904,6 @@ print(
 )
 
 
-write_csv(
-  sma_mako_lofo_summary,
-  "outputs/sma/gam/sma_mako_lofo_summary.csv"
-)
-
-write_csv(
-  sma_mako_lofo_by_group,
-  "outputs/sma/gam/sma_mako_lofo_by_group.csv"
-)
-
 
 # =============================================================================
 # 22. Plot MAK-model LOFO
@@ -2028,17 +1968,6 @@ p_sma_mako_lofo <- ggplot(
 
 p_sma_mako_lofo
 
-
-ggsave(
-
-  "outputs/sma/gam/figures/sma_mako_gam_lofo.png",
-
-  p_sma_mako_lofo,
-
-  width = 8,
-  height = 6,
-  dpi = 300
-)
 
 
 # =============================================================================
@@ -2163,8 +2092,8 @@ sma_skh_gam_prediction <-
 
   mutate(
 
-    sma_from_skh_gam_sensitivity = case_when(
-
+    sma_from_skh_gam_sensitivity = case_when(  # I changed this to 
+  
       gam_supported &
         !is.na(
           p_sma_skh_gam
@@ -2357,11 +2286,11 @@ sma_skh_gam_sensitivity_summary <-
       gam_supported_skh_mt /
         total_skh_mt,
 
-    sma_from_skh_gam_sensitivity_mt =
-      sum(
-        sma_from_skh_gam,
-        na.rm = TRUE
-      )
+ sma_from_skh_gam_sensitivity_mt =
+  sum(
+    sma_from_skh_gam_sensitivity,
+    na.rm = TRUE
+  )
   )
 
 
@@ -2408,19 +2337,9 @@ print(
 )
 
 #========================================
-write_csv(
-  sma_skh_gam_summary,
-  "outputs/sma/gam/sma_skh_gam_summary.csv"
-)
-
-write_csv(
-  sma_mak_gam_summary,
-  "outputs/sma/gam/sma_mak_gam_summary.csv"
-)
-
-
+#glimpse(sma_skh_gam_prediction)
 # =============================================================================
-# 28. Reconstruction by fishery group
+# 29. GAM sensitivity and diagnostic summaries by fishery group
 # =============================================================================
 
 sma_skh_gam_by_group <-
@@ -2446,9 +2365,9 @@ sma_skh_gam_by_group <-
         na.rm = TRUE
       ),
 
-    sma_from_skh_gam_mt =
+    sma_from_skh_gam_sensitivity_mt  =
       sum(
-        sma_from_skh_gam,
+        sma_from_skh_gam_sensitivity ,
         na.rm = TRUE
       ),
 
@@ -2456,8 +2375,10 @@ sma_skh_gam_by_group <-
   )
 
 
-sma_mak_gam_by_group <-
-  sma_mak_gam_prediction |>
+ 
+
+sma_mak_gam_diagnostic_by_group <-
+  sma_mak_gam_diagnostic_prediction |>
 
   group_by(
     FISHERY_GROUP_CODE
@@ -2479,9 +2400,9 @@ sma_mak_gam_by_group <-
         na.rm = TRUE
       ),
 
-    sma_from_mak_gam_mt =
+    sma_from_mak_gam_diagnostic_mt =
       sum(
-        sma_from_mak_gam,
+        sma_from_mak_gam_diagnostic,
         na.rm = TRUE
       ),
 
@@ -2495,31 +2416,433 @@ print(
 )
 
 print(
-  sma_mak_gam_by_group,
+  sma_mak_gam_diagnostic_by_group,
   n = Inf
 )
 
 
-write_csv(
-  sma_skh_gam_by_group,
-  "outputs/sma/gam/sma_skh_gam_by_group.csv"
-)
-
-write_csv(
-  sma_mak_gam_by_group,
-  "outputs/sma/gam/sma_mak_gam_by_group.csv"
-)
-
 
 # =============================================================================
-# 29. Annual GAM reconstructions
+# 30. Annual comparison of SKH -> SMA reconstruction methods
+#
+# Compare the primary HSCR N1/N2 reconstructions with the GAM sensitivity.
+#
+# This comparison is restricted to the allocation of generic shark catch
+# (SKH) to SMA. MAK allocation and complete non-reporting reconstruction
+# are not included here.
 # =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 30.1 HSCR annual estimates
+# -----------------------------------------------------------------------------
+
+sma_skh_hscr_annual <-
+  sma_scenario_base |>
+  group_by(
+    YEAR
+  ) |>
+  summarise(
+
+    skh_mt =
+      sum(
+        rc_shark_nei,
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_N1 =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_N2 =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  )
+
+
+# -----------------------------------------------------------------------------
+# 30.2 GAM sensitivity annual estimates
+# -----------------------------------------------------------------------------
 
 sma_skh_gam_annual <-
   sma_skh_gam_prediction |>
-
   group_by(
     YEAR
+  ) |>
+  summarise(
+
+    gam_supported_skh_mt =
+      sum(
+        skh_mt[
+          gam_supported
+        ],
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_gam_sensitivity =
+      sum(
+        sma_from_skh_gam_sensitivity,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  )
+
+
+# -----------------------------------------------------------------------------
+# 30.3 Combine annual estimates
+# -----------------------------------------------------------------------------
+
+sma_skh_method_annual <-
+  sma_skh_hscr_annual |>
+
+  full_join(
+    sma_skh_gam_annual,
+    by = "YEAR"
+  ) |>
+
+  arrange(
+    YEAR
+  ) |>
+
+  mutate(
+
+    # Differences in reconstructed SMA catch
+
+    gam_minus_N1 =
+      sma_from_skh_gam_sensitivity -
+        sma_from_skh_N1,
+
+    gam_minus_N2 =
+      sma_from_skh_gam_sensitivity -
+        sma_from_skh_N2,
+
+    # Ratios are useful diagnostically, but suppress years where
+    # HSCR allocation is zero.
+
+    gam_to_N1 =
+      case_when(
+        sma_from_skh_N1 > 0 ~
+          sma_from_skh_gam_sensitivity /
+            sma_from_skh_N1,
+        TRUE ~
+          NA_real_
+      ),
+
+    gam_to_N2 =
+      case_when(
+        sma_from_skh_N2 > 0 ~
+          sma_from_skh_gam_sensitivity /
+            sma_from_skh_N2,
+        TRUE ~
+          NA_real_
+      )
+  )
+
+
+print(
+  sma_skh_method_annual,
+  n = Inf
+)
+
+
+# -----------------------------------------------------------------------------
+# 30.4 Check annual totals against reconstruction summaries
+# -----------------------------------------------------------------------------
+
+sma_skh_method_total_check <-
+  sma_skh_method_annual |>
+  summarise(
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    HSCR_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    HSCR_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    GAM_sensitivity_mt =
+      sum(
+        sma_from_skh_gam_sensitivity,
+        na.rm = TRUE
+      )
+  )
+
+
+print(
+  sma_skh_method_total_check
+)
+
+
+## -----------------------------------------------------------------------------
+# 30.5 Long format for plotting
+# -----------------------------------------------------------------------------
+
+sma_skh_method_annual_long <-
+  sma_skh_method_annual |>
+
+  select(
+    YEAR,
+    `HSCR N1` =
+      sma_from_skh_N1,
+    `HSCR N2` =
+      sma_from_skh_N2,
+    `GAM sensitivity` =
+      sma_from_skh_gam_sensitivity
+  ) |>
+
+  pivot_longer(
+    cols =
+      -YEAR,
+    names_to =
+      "method",
+    values_to =
+      "sma_mt"
+  ) |>
+
+  mutate(
+    method =
+      factor(
+        method,
+        levels = c(
+          "HSCR N1",
+          "HSCR N2",
+          "GAM sensitivity"
+        )
+      )
+  )
+
+# plot 
+p_sma_skh_method_annual <-
+  ggplot(
+    sma_skh_method_annual_long,
+    aes(
+      x = YEAR,
+      y = sma_mt,
+      colour = method
+    )
+  ) +
+
+  geom_line(
+    linewidth = 0.8
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Reconstructed SMA catch (t)",
+    colour = NULL,
+    title = "Annual allocation of generic shark catch to shortfin mako",
+    subtitle = "HSCR reconstructions and GAM sensitivity"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_annual
+
+
+
+
+# -----------------------------------------------------------------------------
+# 30.6 Cumulative reconstruction
+# -----------------------------------------------------------------------------
+
+sma_skh_method_cumulative <-
+  sma_skh_method_annual_long |>
+
+  arrange(
+    method,
+    YEAR
+  ) |>
+
+  group_by(
+    method
+  ) |>
+
+  mutate(
+    cumulative_sma_mt =
+      cumsum(
+        sma_mt
+      )
+  ) |>
+
+  ungroup()
+
+
+p_sma_skh_method_cumulative <-
+  ggplot(
+    sma_skh_method_cumulative,
+    aes(
+      x = YEAR,
+      y = cumulative_sma_mt,
+      colour = method
+    )
+  ) +
+
+  geom_line(
+    linewidth = 0.9
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Cumulative reconstructed SMA catch (t)",
+    colour = NULL,
+    title = "Cumulative allocation of generic shark catch to shortfin mako"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_cumulative
+
+# -----------------------------------------------------------------------------
+# 30.7 Annual difference between GAM sensitivity and HSCR
+# -----------------------------------------------------------------------------
+
+sma_skh_method_difference <-
+  sma_skh_method_annual |>
+
+  select(
+    YEAR,
+    `GAM - HSCR N1` =
+      gam_minus_N1,
+    `GAM - HSCR N2` =
+      gam_minus_N2
+  ) |>
+
+  pivot_longer(
+    cols =
+      -YEAR,
+    names_to =
+      "comparison",
+    values_to =
+      "difference_mt"
+  )
+
+
+p_sma_skh_method_difference <-
+  ggplot(
+    sma_skh_method_difference,
+    aes(
+      x = YEAR,
+      y = difference_mt,
+      colour = comparison
+    )
+  ) +
+
+  geom_hline(
+    yintercept = 0,
+    linewidth = 0.4
+  ) +
+
+  geom_line(
+    linewidth = 0.8
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Difference in reconstructed SMA catch (t)",
+    colour = NULL,
+    title = "Annual difference between GAM and HSCR reconstruction"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_difference
+# by time block 
+
+# -----------------------------------------------------------------------------
+# 30.8 Reconstruction comparison by reporting period
+# -----------------------------------------------------------------------------
+
+sma_skh_method_period <-
+  sma_skh_method_annual |>
+
+  mutate(
+    period =
+      case_when(
+
+        YEAR <= 1963 ~
+          "1950_1963",
+
+        YEAR <= 1980 ~
+          "1964_1980",
+
+        YEAR <= 1994 ~
+          "1981_1994",
+
+        YEAR <= 2004 ~
+          "1995_2004",
+
+        YEAR <= 2014 ~
+          "2005_2014",
+
+        TRUE ~
+          "2015_2025"
+      ),
+
+    period =
+      factor(
+        period,
+        levels = c(
+          "1950_1963",
+          "1964_1980",
+          "1981_1994",
+          "1995_2004",
+          "2005_2014",
+          "2015_2025"
+        ),
+        ordered = TRUE
+      )
+  ) |>
+
+  group_by(
+    period
   ) |>
 
   summarise(
@@ -2530,34 +2853,79 @@ sma_skh_gam_annual <-
         na.rm = TRUE
       ),
 
-    sma_from_skh_gam_mt =
+    HSCR_N1_mt =
       sum(
-        sma_from_skh_gam,
+        sma_from_skh_N1,
         na.rm = TRUE
       ),
+
+    HSCR_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    GAM_sensitivity_mt =
+      sum(
+        sma_from_skh_gam_sensitivity,
+        na.rm = TRUE
+      ),
+
+    GAM_minus_N1_mt =
+      GAM_sensitivity_mt -
+        HSCR_N1_mt,
+
+    GAM_minus_N2_mt =
+      GAM_sensitivity_mt -
+        HSCR_N2_mt,
 
     .groups = "drop"
   )
 
 
-sma_mak_gam_annual <-
-  sma_mak_gam_prediction |>
+print(
+  sma_skh_method_period,
+  n = Inf
+)
+
+
+
+# =============================================================================
+# 31. Annual HSCR versus GAM comparison by fishery group
+#
+# Decompose differences among reconstruction methods by fishery group.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 31.1 HSCR annual estimates by fishery group
+# -----------------------------------------------------------------------------
+
+sma_skh_hscr_annual_group <-
+  sma_scenario_base |>
 
   group_by(
-    YEAR
+    YEAR,
+    FISHERY_GROUP_CODE
   ) |>
 
   summarise(
 
-    mak_mt =
+    skh_mt =
       sum(
-        mak_mt,
+        rc_shark_nei,
         na.rm = TRUE
       ),
 
-    sma_from_mak_gam_mt =
+    sma_from_skh_N1 =
       sum(
-        sma_from_mak_gam,
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_N2 =
+      sum(
+        sma_from_skh_N2,
         na.rm = TRUE
       ),
 
@@ -2565,21 +2933,816 @@ sma_mak_gam_annual <-
   )
 
 
-write_csv(
-  sma_skh_gam_annual,
-  "outputs/sma/gam/sma_skh_gam_annual.csv"
-)
+# -----------------------------------------------------------------------------
+# 31.2 GAM annual estimates by fishery group
+# -----------------------------------------------------------------------------
 
-write_csv(
-  sma_mak_gam_annual,
-  "outputs/sma/gam/sma_mak_gam_annual.csv"
+sma_skh_gam_annual_group <-
+  sma_skh_gam_prediction |>
+
+  group_by(
+    YEAR,
+    FISHERY_GROUP_CODE
+  ) |>
+
+  summarise(
+
+    gam_supported_skh_mt =
+      sum(
+        skh_mt[
+          gam_supported
+        ],
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_gam_sensitivity =
+      sum(
+        sma_from_skh_gam_sensitivity,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  )
+
+
+# -----------------------------------------------------------------------------
+# 31.3 Combine
+# -----------------------------------------------------------------------------
+
+sma_skh_method_annual_group <-
+  sma_skh_hscr_annual_group |>
+
+  full_join(
+    sma_skh_gam_annual_group,
+    by = c(
+      "YEAR",
+      "FISHERY_GROUP_CODE"
+    )
+  ) |>
+
+  mutate(
+
+    across(
+      c(
+        skh_mt,
+        sma_from_skh_N1,
+        sma_from_skh_N2,
+        gam_supported_skh_mt,
+        sma_from_skh_gam_sensitivity
+      ),
+      ~ replace_na(.x, 0)
+    ),
+
+    gam_minus_N1 =
+      sma_from_skh_gam_sensitivity -
+        sma_from_skh_N1,
+
+    gam_minus_N2 =
+      sma_from_skh_gam_sensitivity -
+        sma_from_skh_N2
+  ) |>
+
+  arrange(
+    FISHERY_GROUP_CODE,
+    YEAR
+  )
+
+# Turn to long version 
+sma_skh_method_annual_group_long <-
+  sma_skh_method_annual_group |>
+
+  select(
+    YEAR,
+    FISHERY_GROUP_CODE,
+
+    `HSCR N1` =
+      sma_from_skh_N1,
+
+    `HSCR N2` =
+      sma_from_skh_N2,
+
+    `GAM sensitivity` =
+      sma_from_skh_gam_sensitivity
+  ) |>
+
+  pivot_longer(
+    cols =
+      c(
+        `HSCR N1`,
+        `HSCR N2`,
+        `GAM sensitivity`
+      ),
+    names_to =
+      "method",
+    values_to =
+      "sma_mt"
+  ) |>
+
+  mutate(
+
+    method =
+      factor(
+        method,
+        levels = c(
+          "HSCR N1",
+          "HSCR N2",
+          "GAM sensitivity"
+        )
+      )
+  )
+
+# Plot 
+p_sma_skh_method_annual_group <-
+  ggplot(
+    sma_skh_method_annual_group_long |>
+      filter(
+        FISHERY_GROUP_CODE %in%
+          c(
+            "GN",
+            "LI",
+            "LL",
+            "PS"
+          )
+      ),
+    aes(
+      x = YEAR,
+      y = sma_mt,
+      colour = method
+    )
+  ) +
+
+  geom_line(
+    linewidth = 0.7
+  ) +
+
+  facet_wrap(
+    ~ FISHERY_GROUP_CODE,
+    scales = "free_y",
+    ncol = 2
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Reconstructed SMA catch (t)",
+    colour = NULL,
+    title =
+      "Annual allocation of generic shark catch to shortfin mako by fishery group",
+    subtitle =
+      "HSCR reconstructions and GAM sensitivity"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_annual_group
+
+
+
+sma_skh_method_group_summary <-
+  sma_skh_method_annual_group |>
+
+  group_by(
+    FISHERY_GROUP_CODE
+  ) |>
+
+  summarise(
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    HSCR_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    HSCR_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    GAM_sensitivity_mt =
+      sum(
+        sma_from_skh_gam_sensitivity,
+        na.rm = TRUE
+      ),
+
+    GAM_minus_N1_mt =
+      GAM_sensitivity_mt -
+        HSCR_N1_mt,
+
+    GAM_minus_N2_mt =
+      GAM_sensitivity_mt -
+        HSCR_N2_mt,
+
+    .groups = "drop"
+  ) |>
+
+  arrange(
+    desc(
+      GAM_minus_N1_mt
+    )
+  )
+
+
+print(
+  sma_skh_method_group_summary,
+  n = Inf
 )
 
 
 # =============================================================================
-# 30. Save model objects
+# 32. Revised annual HSCR versus GAM comparison figure
+#
+# Show HSCR N1-N2 as a ribbon and the midpoint as the central HSCR trajectory.
+# GAM remains a separate sensitivity line.
 # =============================================================================
 
+sma_skh_method_annual_plot <-
+  sma_skh_method_annual |>
+  mutate(
+
+    HSCR_low =
+      pmin(
+        sma_from_skh_N1,
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    HSCR_high =
+      pmax(
+        sma_from_skh_N1,
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    HSCR_mid =
+      rowMeans(
+        cbind(
+          sma_from_skh_N1,
+          sma_from_skh_N2
+        ),
+        na.rm = TRUE
+      )
+  )
+
+
+p_sma_skh_method_annual_revised <-
+  ggplot(
+    sma_skh_method_annual_plot,
+    aes(
+      x = YEAR
+    )
+  ) +
+
+  geom_ribbon(
+    aes(
+      ymin = HSCR_low,
+      ymax = HSCR_high,
+      fill = "HSCR N1-N2 range"
+    ),
+    alpha = 0.25
+  ) +
+
+  geom_line(
+    aes(
+      y = HSCR_mid,
+      colour = "HSCR midpoint"
+    ),
+    linewidth = 0.8
+  ) +
+
+  geom_line(
+    aes(
+      y = sma_from_skh_gam_sensitivity,
+      colour = "GAM sensitivity"
+    ),
+    linewidth = 0.8
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  scale_fill_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Reconstructed SMA catch (t)",
+    colour = NULL,
+    fill = NULL,
+    title =
+      "Annual allocation of generic shark catch to shortfin mako",
+    subtitle =
+      "HSCR reconstruction range and GAM sensitivity"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_annual_revised
+
+# =============================================================================
+# 33. Revised cumulative comparison figure
+# =============================================================================
+
+sma_skh_method_cumulative_plot <-
+  sma_skh_method_annual_plot |>
+
+  arrange(
+    YEAR
+  ) |>
+
+  mutate(
+
+    cumulative_HSCR_low =
+      cumsum(
+        HSCR_low
+      ),
+
+    cumulative_HSCR_high =
+      cumsum(
+        HSCR_high
+      ),
+
+    cumulative_HSCR_mid =
+      cumsum(
+        HSCR_mid
+      ),
+
+    cumulative_GAM =
+      cumsum(
+        sma_from_skh_gam_sensitivity
+      )
+  )
+
+
+p_sma_skh_method_cumulative_revised <-
+  ggplot(
+    sma_skh_method_cumulative_plot,
+    aes(
+      x = YEAR
+    )
+  ) +
+
+  geom_ribbon(
+    aes(
+      ymin = cumulative_HSCR_low,
+      ymax = cumulative_HSCR_high,
+      fill = "HSCR N1-N2 range"
+    ),
+    alpha = 0.25
+  ) +
+
+  geom_line(
+    aes(
+      y = cumulative_HSCR_mid,
+      colour = "HSCR midpoint"
+    ),
+    linewidth = 0.9
+  ) +
+
+  geom_line(
+    aes(
+      y = cumulative_GAM,
+      colour = "GAM sensitivity"
+    ),
+    linewidth = 0.9
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  scale_fill_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Cumulative reconstructed SMA catch (t)",
+    colour = NULL,
+    fill = NULL,
+    title =
+      "Cumulative allocation of generic shark catch to shortfin mako",
+    subtitle =
+      "HSCR reconstruction range and GAM sensitivity"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_cumulative_revised
+ 
+# =============================================================================
+# 34. Revised annual comparison by fishery group
+# =============================================================================
+
+sma_skh_method_annual_group_plot <-
+  sma_skh_method_annual_group |>
+
+  filter(
+    FISHERY_GROUP_CODE %in%
+      c(
+        "GN",
+        "LI",
+        "LL",
+        "PS"
+      )
+  ) |>
+
+  mutate(
+
+    HSCR_low =
+      pmin(
+        sma_from_skh_N1,
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    HSCR_high =
+      pmax(
+        sma_from_skh_N1,
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    HSCR_mid =
+      rowMeans(
+        cbind(
+          sma_from_skh_N1,
+          sma_from_skh_N2
+        ),
+        na.rm = TRUE
+      )
+  )
+
+
+p_sma_skh_method_annual_group_revised <-
+  ggplot(
+    sma_skh_method_annual_group_plot,
+    aes(
+      x = YEAR
+    )
+  ) +
+
+  geom_ribbon(
+    aes(
+      ymin = HSCR_low,
+      ymax = HSCR_high,
+      fill = "HSCR N1-N2 range"
+    ),
+    alpha = 0.25
+  ) +
+
+  geom_line(
+    aes(
+      y = HSCR_mid,
+      colour = "HSCR midpoint"
+    ),
+    linewidth = 0.7
+  ) +
+
+  geom_line(
+    aes(
+      y = sma_from_skh_gam_sensitivity,
+      colour = "GAM sensitivity"
+    ),
+    linewidth = 0.7
+  ) +
+
+  facet_wrap(
+    ~ FISHERY_GROUP_CODE,
+    scales = "free_y",
+    ncol = 2
+  ) +
+
+  scale_colour_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  scale_fill_viridis_d(
+    option = "D",
+    end = 0.9
+  ) +
+
+  labs(
+    x = "Year",
+    y = "Reconstructed SMA catch (t)",
+    colour = NULL,
+    fill = NULL,
+    title =
+      "Annual allocation of generic shark catch to shortfin mako by fishery group",
+    subtitle =
+      "HSCR reconstruction range and GAM sensitivity"
+  ) +
+
+  theme_bw() +
+
+  theme(
+    legend.position = "bottom"
+  )
+
+
+p_sma_skh_method_annual_group_revised
+ 
+# =============================================================================
+# 35. Fishery-group decomposition of GAM versus HSCR divergence
+# =============================================================================
+
+sma_skh_method_group_decomposition <-
+  sma_skh_method_group_summary |>
+
+  mutate(
+
+    total_GAM_minus_N1 =
+      sum(
+        GAM_minus_N1_mt,
+        na.rm = TRUE
+      ),
+
+    total_GAM_minus_N2 =
+      sum(
+        GAM_minus_N2_mt,
+        na.rm = TRUE
+      ),
+
+    share_GAM_minus_N1 =
+      case_when(
+
+        total_GAM_minus_N1 != 0 ~
+          GAM_minus_N1_mt /
+            total_GAM_minus_N1,
+
+        TRUE ~
+          NA_real_
+      ),
+
+    share_GAM_minus_N2 =
+      case_when(
+
+        total_GAM_minus_N2 != 0 ~
+          GAM_minus_N2_mt /
+            total_GAM_minus_N2,
+
+        TRUE ~
+          NA_real_
+      ),
+
+    GAM_to_HSCR_N1 =
+      case_when(
+
+        HSCR_N1_mt > 0 ~
+          GAM_sensitivity_mt /
+            HSCR_N1_mt,
+
+        TRUE ~
+          NA_real_
+      ),
+
+    GAM_to_HSCR_N2 =
+      case_when(
+
+        HSCR_N2_mt > 0 ~
+          GAM_sensitivity_mt /
+            HSCR_N2_mt,
+
+        TRUE ~
+          NA_real_
+      )
+  ) |>
+
+  arrange(
+    desc(
+      GAM_minus_N1_mt
+    )
+  )
+
+
+print(
+  sma_skh_method_group_decomposition,
+  n = Inf
+)
+
+# =============================================================================
+# 36. Fishery-group × period decomposition
+# =============================================================================
+
+sma_skh_method_group_period <-
+  sma_skh_method_annual_group |>
+
+  mutate(
+    period =
+      case_when(
+
+        YEAR <= 1963 ~
+          "1950_1963",
+
+        YEAR <= 1980 ~
+          "1964_1980",
+
+        YEAR <= 1994 ~
+          "1981_1994",
+
+        YEAR <= 2004 ~
+          "1995_2004",
+
+        YEAR <= 2014 ~
+          "2005_2014",
+
+        TRUE ~
+          "2015_2025"
+      ),
+
+    period =
+      factor(
+        period,
+        levels = c(
+          "1950_1963",
+          "1964_1980",
+          "1981_1994",
+          "1995_2004",
+          "2005_2014",
+          "2015_2025"
+        ),
+        ordered = TRUE
+      )
+  ) |>
+
+  group_by(
+    FISHERY_GROUP_CODE,
+    period
+  ) |>
+
+  summarise(
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    HSCR_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    HSCR_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    GAM_sensitivity_mt =
+      sum(
+        sma_from_skh_gam_sensitivity,
+        na.rm = TRUE
+      ),
+
+    GAM_minus_N1_mt =
+      GAM_sensitivity_mt -
+        HSCR_N1_mt,
+
+    GAM_minus_N2_mt =
+      GAM_sensitivity_mt -
+        HSCR_N2_mt,
+
+    .groups = "drop"
+  ) |>
+
+  arrange(
+    FISHERY_GROUP_CODE,
+    period
+  )
+
+
+print(
+  sma_skh_method_group_period,
+  n = Inf
+)
+
+
+
+#======================================================================================
+# # Save the revised objects. 
+
+
+# # Figures
+# "sma_skh_hscr_gam_annual_comparison_revised.png"
+# "sma_skh_hscr_gam_cumulative_comparison_revised.png"
+# "sma_skh_hscr_gam_annual_group_comparison_revised.png"
+
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_annual_comparison_revised.png"
+  ),
+  p_sma_skh_method_annual_group_revised,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_cumulative_comparison_revised.png"
+  ),
+  p_sma_skh_method_cumulative_revised,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+ 
+ 
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_annual_group_comparison_revised.png"
+  ),
+  p_sma_skh_method_annual_revised,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+# # Tables/data
+# "sma_skh_hscr_gam_group_decomposition.csv"
+# "sma_skh_hscr_gam_period_comparison.csv"
+# "sma_skh_hscr_gam_group_period_comparison.csv"
+
+#
+write_csv(
+  sma_skh_method_group_decomposition,
+  "outputs/sma/gam/sma_skh_hscr_gam_group_decomposition.csv"
+)
+
+
+write_csv(
+  sma_skh_method_period,
+  file.path(
+    sma_gam_output_dir,
+    "sma_skh_hscr_gam_period_comparison.csv"
+  )
+)
+
+write_csv(
+  sma_skh_method_group_period,
+  "outputs/sma/gam/sma_skh_hscr_gam_group_period_comparison.csv"
+)
+
+
+write_csv(
+  sma_skh_method_annual,
+  file.path(
+    sma_gam_output_dir,
+    "sma_skh_hscr_gam_annual_comparison.csv"
+  )
+)
+
+
+# =============================================================================
+# 39. Save model objects  and summary tables. 
+# =============================================================================
+
+sma_gam_output_dir <- "C:/Users/JSR/Dropbox/JoelWork/IOTC/BSH_SMA_CATCH_WPEB_22_2026/IOTC_Shark_Catch_Reconstruction/outputs/sma/gam/"
+sma_gam_figure_dir <- "C:/Users/JSR/Dropbox/JoelWork/IOTC/BSH_SMA_CATCH_WPEB_22_2026/IOTC_Shark_Catch_Reconstruction/outputs/sma/gam/figures"
+
+
+#    
 saveRDS(
   sma_shark_gam4,
   "outputs/sma/gam/sma_shark_gam4.rds"
@@ -2589,10 +3752,156 @@ saveRDS(
   sma_mako_gam3,
   "outputs/sma/gam/sma_mako_gam3.rds"
 )
+#
+write_csv(
+  sma_skh_gam_annual,
+  "outputs/sma/gam/sma_skh_gam_annual.csv"
+)
+
+write_csv(
+  sma_mak_gam_annual,
+  "outputs/sma/gam/sma_mak_gam_annual.csv"
+)
+write_csv(
+  sma_skh_gam_by_group,
+  "outputs/sma/gam/sma_skh_gam_sensitivity_by_group.csv"
+)
+
+write_csv(
+  sma_mak_gam_diagnostic_by_group,
+  "outputs/sma/gam/sma_mak_gam_diagnostic_by_group.csv"
+)
+write_csv(
+  sma_skh_gam_sensitivity_summary,
+  "outputs/sma/gam/sma_skh_gam_sensitivity_summary.csv"
+)
+
+write_csv(
+  sma_mak_gam_diagnostic_summary,
+  "outputs/sma/gam/sma_mak_gam_diagnostic_summary.csv"
+)
+
+write_csv(
+  sma_mako_lofo_summary,
+  "outputs/sma/gam/sma_mako_lofo_summary.csv"
+)
+
+write_csv(
+  sma_mako_lofo_by_group,
+  "outputs/sma/gam/sma_mako_lofo_by_group.csv"
+)
+
+write_csv(
+  sma_mako_model_comparison,
+  "outputs/sma/gam/sma_mako_model_comparison.csv"
+)
+
+
+write_csv(
+  sma_mako_benchmark,
+  "outputs/sma/gam/sma_mako_empirical_benchmark.csv"
+)
+
+write_csv(
+  sma_mako_response_summary,
+  "outputs/sma/gam/sma_mako_response_summary.csv"
+)
+
+write_csv(
+  sma_shark_lofo_summary,
+  "outputs/sma/gam/sma_shark_lofo_summary.csv"
+)
+
+write_csv(
+  sma_shark_lofo_by_group,
+  "outputs/sma/gam/sma_shark_lofo_by_group.csv"
+)
+write_csv(
+  sma_shark_model_comparison,
+  "outputs/sma/gam/sma_shark_model_comparison.csv"
+)
+
+write_csv(
+  sma_shark_response_summary,
+  "outputs/sma/gam/sma_shark_response_summary.csv"
+)
+
+write_csv(
+  sma_gam_inventory,
+  "outputs/sma/gam/sma_gam_training_inventory.csv"
+)
+# -----------------------------------------------------------------------------
+# 39.9 Save annual comparison outputs
+# -----------------------------------------------------------------------------
+
+
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_annual_comparison.png"
+  ),
+  p_sma_skh_method_annual,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_cumulative_comparison.png"
+  ),
+  p_sma_skh_method_cumulative,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_annual_difference.png"
+  ),
+  p_sma_skh_method_difference,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+
+
+
+ggsave(
+
+  "outputs/sma/gam/figures/sma_shark_gam_lofo.png",
+
+  p_sma_shark_lofo,
+
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+
+
+ggsave(
+
+  "outputs/sma/gam/figures/sma_mako_gam_lofo.png",
+
+  p_sma_mako_lofo,
+
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+
+
 
 
 # =============================================================================
-# 31. Objects retained in workspace
+# 366. Objects retained in workspace
 #
 # Key objects:
 #
@@ -2616,8 +3925,43 @@ saveRDS(
 #   sma_mako_lofo_by_group
 #
 #   sma_skh_gam_prediction
-#   sma_mak_gam_prediction
-#   sma_skh_gam_summary
-#   sma_mak_gam_summary
+#   sma_skh_gam_sensitivity_summary
+#   sma_skh_gam_by_group
+#
+#   sma_mak_gam_diagnostic_prediction
+#   sma_mak_gam_diagnostic_summary
+#   sma_mak_gam_diagnostic_by_group
+#
+# # SKH GAM sensitivity:
+#   p_sma_skh_gam
+#   sma_from_skh_gam_sensitivity
+#
+# MAK GAM diagnostic:
+#   p_sma_mak_gam
+#   sma_from_mak_gam_diagnostic
 #
 # =============================================================================
+
+
+
+sma_skh_method_group_table <-
+  sma_skh_method_group_decomposition |>
+  filter(
+    FISHERY_GROUP_CODE %in%
+      c("GN", "LI", "LL", "PS", "OT")
+  ) |>
+  transmute(
+    Fishery = FISHERY_GROUP_CODE,
+    `SKH catch (t)` = round(skh_mt),
+    `HSCR N1 (t)` = round(HSCR_N1_mt),
+    `HSCR N2 (t)` = round(HSCR_N2_mt),
+    `GAM sensitivity (t)` = round(GAM_sensitivity_mt),
+    `GAM - HSCR N1 (t)` = round(GAM_minus_N1_mt),
+    `Share of GAM-HSCR difference (%)` =
+      round(
+        100 * share_GAM_minus_N1,
+        1
+      )
+  )
+
+sma_skh_method_group_table
