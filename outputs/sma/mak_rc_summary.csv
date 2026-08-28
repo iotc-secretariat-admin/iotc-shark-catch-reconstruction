@@ -1,0 +1,42 @@
+FLEET_CODE,FLEET,FISHERY_GROUP_CODE,FISHERY_GROUP,FISHERY_CODE,FISHERY,mak_mt,first_year,last_year,n_years
+MDG,Madagascar,LI,Line,LIT,Line | Trolling,24359.940013885498,1950,2023,74
+TWN,"Taiwan,China",LL,Longline,LLD,Longline | Deep-freezing,8671.839400291443,2007,2025,19
+IDN,Indonesia,LI,Line,LIC,Line | Coastal longline,3237.966125488281,2010,2022,13
+TWN,"Taiwan,China",LL,Longline,LLF,Longline | Fresh,1954.7687133848654,2012,2025,14
+IDN,Indonesia,GN,Gillnet,GN,Gillnet,1688.6310119628909,2010,2022,13
+IDN,Indonesia,LI,Line,LIH,Line | Handline,1020.6966867446891,2010,2022,13
+SYC,Seychelles,LL,Longline,LLD,Longline | Deep-freezing,832.4670097827908,2014,2025,12
+SOM,Somalia,LI,Line,LIC,Line | Coastal longline,708.640014648438,2025,2025,1
+IRN,I. R. Iran,GN,Gillnet,GN,Gillnet,608.4585711956024,2011,2022,12
+SOM,Somalia,GN,Gillnet,GN,Gillnet,605.450012207031,2025,2025,1
+NEIFR,NEI (frozen),LL,Longline,LLD,Longline | Deep-freezing,466.92041552066803,2007,2016,10
+GBR,United Kingdom of Great Britain and Northern Ireland,LL,Longline,LLO,Longline | Other,220.86049604415885,2007,2010,4
+IND,India,LL,Longline,LLD,Longline | Deep-freezing,82.61796915531168,2007,2011,5
+LKA,Sri Lanka,LL,Longline,LLF,Longline | Fresh,74.60600018501287,2018,2023,6
+TZA,United republic of Tanzania,LL,Longline,LLD,Longline | Deep-freezing,56.16208852455022,2007,2014,8
+LKA,Sri Lanka,GN,Gillnet,GN,Gillnet,41.73999994993209,2018,2023,6
+LKA,Sri Lanka,LI,Line,LIC,Line | Coastal longline,40.00000095367436,2022,2023,2
+MDV,Maldives,LL,Longline,LLD,Longline | Deep-freezing,21.7600002288818,2013,2014,2
+IDN,Indonesia,LI,Line,LIT,Line | Trolling,19.984436452388767,2010,2021,9
+NEICE,NEI (fresh),LL,Longline,LLF,Longline | Fresh,16.47459521144629,2014,2016,3
+KEN,Kenya,LL,Longline,LLO,Longline | Other,15.3859996795654,2019,2019,1
+IDN,Indonesia,LL,Longline,LLF,Longline | Fresh,13.09581813961268,2010,2022,8
+BLZ,Belize,LL,Longline,LLF,Longline | Fresh,8.40316401422024,2012,2014,3
+MOZ,Mozambique,LL,Longline,LLF,Longline | Fresh,6.440000116825102,2021,2022,2
+MOZ,Mozambique,LL,Longline,LLO,Longline | Other,6.198999963700772,2015,2020,5
+IDN,Indonesia,PS,Purse seine,PSOT,Purse seine | Other,5.932001939509063,2010,2022,13
+IDN,Indonesia,OT,Other,OT,Other,5.885786652565004,2010,2019,6
+THA,Thailand,LL,Longline,LLD,Longline | Deep-freezing,5.610000163316726,2015,2015,1
+COM,Comoros,LI,Line,LIH,Line | Handline,3.71799993515015,2018,2018,1
+BLZ,Belize,LL,Longline,LLD,Longline | Deep-freezing,3.62863874435424,2012,2013,2
+SYC,Seychelles,LL,Longline,LLF,Longline | Fresh,3.0599999129772173,2024,2025,2
+MUS,Mauritius,LL,Longline,LLO,Longline | Other,2.01099991798401,2017,2017,1
+AUS,Australia,LL,Longline,LLO,Longline | Other,1.54200005531311,2014,2014,1
+TZA,United republic of Tanzania,LL,Longline,LLF,Longline | Fresh,1.276936493813992,2012,2014,3
+OMN,Sultanate of Oman,LL,Longline,LLD,Longline | Deep-freezing,1.275000005960465,2025,2025,1
+MUS,Mauritius,LL,Longline,LLF,Longline | Fresh,1.14999997615814,2017,2017,1
+PHL,Philippines,LL,Longline,LLD,Longline | Deep-freezing,1.124999970197677,2010,2010,1
+LKA,Sri Lanka,PS,Purse seine,PSOT,Purse seine | Other,1,2022,2023,2
+TZA,United republic of Tanzania,LI,Line,LIC,Line | Coastal longline,0.819999992847443,2023,2023,1
+SYC,Seychelles,LI,Line,LIC,Line | Coastal longline,0.760000020265579,2024,2025,2
+IDN,Indonesia,LL,Longline,LLD,Longline | Deep-freezing,0.131525665521622,2022,2022,1

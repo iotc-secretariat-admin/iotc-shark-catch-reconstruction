@@ -1,0 +1,10 @@
+ratio_support,temporal_support,n_strata,target_mt,reconstructed_sma_mt,first_year,last_year
+multi_fleet_same_fishery,within_donor_period,877,6589073.273194741,14216.353211733176,1986,2025
+single_fleet_proxy,backcast,77,1855426.108975534,10820.865640380885,2005,2009
+single_fleet_proxy,within_donor_period,156,2188195.4046821054,9283.751623000357,1964,2014
+same_fleet_same_fishery,backcast,106,879822.3377435077,2525.7452446868024,1983,2024
+multi_fleet_same_fishery,backcast,131,196694.6697003469,1489.1903252482225,1981,2023
+same_fleet_same_fishery,forward_extrapolation,67,204600.70242351227,511.7712169175313,2009,2025
+same_fleet_same_fishery,within_donor_period,14,287479.854919225,52.5272750237559,2017,2023
+multi_fleet_same_fishery,forward_extrapolation,13,125569.72207989916,27.140086580713525,2025,2025
+none,no_donor,1732,14327458.383122405,0,1950,2025

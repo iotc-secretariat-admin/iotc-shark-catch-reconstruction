@@ -1,0 +1,31 @@
+FLEET_CODE,FLEET,FISHERY_GROUP_CODE,FISHERY_GROUP,FISHERY_CODE,FISHERY,lma_mt,first_year,last_year,n_years
+IDN,Indonesia,PS,Purse seine,PSOT,Purse seine | Other,1674.5005369437908,2014,2025,8
+LKA,Sri Lanka,GN,Gillnet,GN,Gillnet,1031.0750280618663,1986,2020,35
+LKA,Sri Lanka,LL,Longline,LLO,Longline | Other,781.5396180152893,1986,2013,28
+IDN,Indonesia,LI,Line,LIC,Line | Coastal longline,278.35741758346563,2010,2025,16
+IDN,Indonesia,GN,Gillnet,GN,Gillnet,244.6923380196092,2014,2025,9
+NEIFR,NEI (frozen),LL,Longline,LLO,Longline | Other,227.9895668991378,2002,2010,8
+IDN,Indonesia,LL,Longline,LLF,Longline | Fresh,182.28183355927462,2014,2025,10
+IND,India,GN,Gillnet,GN,Gillnet,87.03999900817864,2025,2025,1
+EUESP,EU (Spain),LL,Longline,LLO,Longline | Other,86.54083070717756,1993,2020,24
+IDN,Indonesia,LI,Line,LIH,Line | Handline,85.43614391796294,2017,2025,6
+IND,India,OT,Other,OT,Other,72.16000057198119,2025,2025,1
+IDN,Indonesia,LL,Longline,LLD,Longline | Deep-freezing,58.39125871658325,2014,2025,3
+IND,India,LI,Line,LIT,Line | Trolling,45.569998979568524,2025,2025,1
+KEN,Kenya,LL,Longline,LLO,Longline | Other,45.40511435829111,2005,2022,10
+GBR,United Kingdom of Great Britain and Northern Ireland,LL,Longline,LLO,Longline | Other,31.224416237324487,2005,2018,4
+LKA,Sri Lanka,LI,Line,LIC,Line | Coastal longline,16,2014,2016,3
+GIN,Guinea,LL,Longline,LLO,Longline | Other,7.5348142441362205,2001,2009,9
+LKA,Sri Lanka,LL,Longline,LLF,Longline | Fresh,3.78999996185303,2013,2013,1
+LKA,Sri Lanka,LI,Line,LIH,Line | Handline,3.399999976158138,2016,2019,3
+IDN,Indonesia,OT,Other,OT,Other,2.0686677973717447,2010,2024,9
+SEN,Senegal,LL,Longline,LLO,Longline | Other,1.5785555839538592,2006,2006,1
+MUS,Mauritius,LL,Longline,LLF,Longline | Fresh,1.145000010728836,2018,2019,2
+MUS,Mauritius,LL,Longline,LLO,Longline | Other,1.1060000360012088,2018,2019,2
+IDN,Indonesia,BB,Baitboat,BB,Baitboat,0.7662237957119947,2010,2015,6
+IND,India,PS,Purse seine,PSOT,Purse seine | Other,0.300000011920929,2025,2025,1
+EUESP,EU (Spain),LL,Longline,LLD,Longline | Deep-freezing,0.1595413046889002,2003,2005,2
+SYC,Seychelles,LI,Line,LIC,Line | Coastal longline,0.0687388107180595,2012,2012,1
+MOZ,Mozambique,LL,Longline,LLO,Longline | Other,0.06669230503030107,2010,2012,3
+SYC,Seychelles,LL,Longline,LLO,Longline | Other,0.0388822630047798,2012,2012,1
+IDN,Indonesia,LI,Line,LIT,Line | Trolling,0.03764679050073027,2010,2017,6

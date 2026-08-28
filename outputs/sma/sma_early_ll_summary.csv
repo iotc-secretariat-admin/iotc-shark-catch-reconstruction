@@ -1,0 +1,5 @@
+sma_reporting_state,n_strata,target_mt,sma_mt,mak_mt,shark_nei_mt
+S4_target_fishing_no_shark_reporting,110,1271891.3864630968,0,0,0
+S1_SMA_reported_RC,17,1047264.928348192,700.3524258136748,0,4602.444282531737
+S3_generic_shark_reported,14,463786.8330400586,0,0,7300.438377380371
+S6_other_no_SMA_information,17,0,0,0,0
