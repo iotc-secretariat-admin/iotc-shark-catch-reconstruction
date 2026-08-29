@@ -114,38 +114,93 @@ sma_skh_group_period_table <- read_csv(
   file_sma_skh_group_period,
   show_col_types = FALSE
 )
+
+
+# Spatial figures
+
+spatial_figure_dir <-
+  file.path(
+    project_root,
+    "outputs",
+    "spatial",
+    "figures"
+  )
+
+fig_bsh_spatial <-
+  file.path(
+    spatial_figure_dir,
+    "bsh_spatial_reported_catch.png"
+  )
+
+fig_sma_spatial <-
+  file.path(
+    spatial_figure_dir,
+    "sma_spatial_reported_catch.png"
+  )
+
+fig_skh_spatial <-
+  file.path(
+    spatial_figure_dir,
+    "skh_spatial_reported_catch.png"
+  )
+
+fig_ll_effort_spatial <-
+  file.path(
+    spatial_figure_dir,
+    "longline_spatial_effort.png"
+  )
+
+fig_shark_reporting_spatial <-
+  file.path(
+    spatial_figure_dir,
+    "shark_spatial_reporting_categories.png"
+  )
+
 ```
+
+ 
+
 
 ::: {custom-style="AbstractBlock" align="center"}
 
-# *Abstract*
+# Abstract
 
-**TODO**
+Reliable catch histories are fundamental to stock assessment, yet historical shark catches in the Indian Ocean are affected by changes in taxonomic resolution, species identification, and reporting practices. We developed revised catch reconstructions for blue shark (*Prionace glauca*, BSH) and shortfin mako (*Isurus oxyrinchus*, SMA) using IOTC nominal catch data from 1950–2025, supported by geo-referenced catch-and-effort data where available. Rather than treating all missing species-specific catch as a single problem, the reconstruction distinguished among reporting states, including species-specific reporting, reporting to generic taxonomic categories, and complete non-reporting of sharks. Generic shark catches were allocated using a hierarchical species-composition reconstruction (HSCR), while complete non-reporting was addressed using donor-based shark-to-target-catch relationships matched hierarchically across fleets, fisheries, and periods. For SMA, catches reported as mako sharks nei were treated separately and allocated between shortfin and longfin mako using observed mako species composition. Statistical species-composition models using generalized additive models (GAMs) were evaluated as alternative approaches, including leave-one-fleet-out cross-validation and comparisons with catch-area data.
+
+The analyses demonstrated that reconstruction methods should differ between BSH and SMA because the species have different reporting histories and empirical support. For SMA, the empirical hierarchical approach was preferred for both generic shark and mako allocations. The SKH-to-SMA GAM explained substantial in-sample variation but showed modest transferability among fleets and produced substantially greater reconstructed catches than HSCR, particularly through historical backcasting in gillnet fisheries and positive predictions in fisheries and periods with little or no observed SMA composition. The MAK-to-SMA GAM similarly showed poor out-of-fleet predictive performance, whereas observed mako catches were generally strongly dominated by SMA, supporting direct hierarchical allocation based on identified mako composition. GAM results were therefore retained as sensitivity analyses or diagnostics rather than primary SMA reconstructions. In contrast, the BSH reconstruction provided stronger support for statistical species-composition modelling as an alternative reconstruction approach. The resulting framework explicitly separates taxonomic allocation from complete non-reporting and preserves unsupported catch as unresolved rather than forcing reconstruction. This approach provides a transparent basis for evaluating uncertainty in historical shark catches and for producing species-specific catch histories suitable for subsequent stock assessment.
+
 
 Keywords: Blue shark; Shortfin mako; catch reconstruction; retained catch; Indian Ocean; IOTC; shark reporting; fisheries statistics
 
 :::
 
+ 
+
 # Introduction
 
-Blue shark (*Prionace glauca*) is among the most widely distributed pelagic sharks and is taken as bycatch in numerous tuna and billfish fisheries throughout the Indian Ocean. Reliable estimates of historical removals are therefore essential for stock assessment, ecological analyses, and fisheries management. Despite substantial improvements in reporting over the past two decades, historical catch records remain incomplete owing to changes in reporting practices, species identification, and the progressive adoption of species-specific reporting by CPCs.
+Blue shark (*Prionace glauca*) and shortfin mako (*Isurus oxyrinchus*) are widely distributed pelagic sharks taken in tuna, billfish, and other fisheries throughout the Indian Ocean. Both species are important components of pelagic shark catches and have been subject to stock assessment and management within the Indian Ocean Tuna Commission (IOTC). Reliable estimates of historical removals are therefore essential for stock assessment, ecological analyses, and fisheries management. Despite substantial improvements in reporting over the past two decades, historical catch records for both species remain incomplete owing to changes in reporting practices, species identification, fleet participation, and the progressive adoption of species-specific reporting by CPCs.
 
-Historical shark catch statistics are affected by two fundamentally different reporting problems. The first is **complete non-reporting**, in which shark catches associated with target fisheries were not reported despite evidence that sharks were likely retained or discarded. The second is **under-reporting to species**, whereby catches were reported only as generic shark categories (e.g., "Various sharks"), preventing estimation of species-specific removals.
+Historical shark catch statistics are affected by two fundamentally different reporting problems. The first is complete non-reporting , in which fishing activity and catches of target species were reported but associated shark catches were not. The second is taxonomic aggregation, whereby shark catches were reported but not identified to the species level. Such catches may occur in broad generic shark categories (e.g., sharks nei or "Various sharks") or, in the case of shortfin mako, within the more taxonomically specific category mako sharks nei (`MAK`), which may include both shortfin and longfin mako (*Isurus paucus*).
 
-These two problems require different reconstruction approaches. Complete non-reporting requires estimation of the expected blue shark catch associated with target fisheries, whereas generic shark reporting requires estimation of the species composition of reported shark catches.
+These problems require different reconstruction approaches. Complete non-reporting requires estimation of the expected species-specific shark catch associated with reported fishing activity, whereas taxonomic aggregation requires allocation of an observed shark catch among species. The latter problem also differs between BSH and SMA. For BSH, the principal taxonomic reconstruction involves estimating the blue shark component of catches reported as generic sharks. For SMA, two levels of taxonomic aggregation must be considered separately: allocation of generic shark catch to shortfin mako and allocation of unresolved mako catch between shortfin and longfin mako. Consequently, the most appropriate reconstruction method need not be identical between species or among reporting categories.
 
-Annual changes in reported blue shark catch should not be interpreted as direct indicators of changes in blue shark abundance. Rather, annual changes almost certainly reflect some combination of:
+A further challenge is distinguishing the absence of a species-specific catch record from the absence of the species in the fishery. Historical reporting frequently progressed from generic shark categories toward species-specific reporting, and the timing of this transition differed among fleets and fisheries. Species-specific catches may therefore appear to increase as reporting becomes more resolved even where the underlying fishery or species composition has changed relatively little. Spatial and temporal information on the expansion of species-specific reporting can help distinguish these changes in reporting state from changes in the occurrence of the species.
 
-- improvements in reporting;
-- entry of new fleets;
-- changes in fishing behaviour;
-- target switching;
-- improved species identification;
-- retrospective revisions of historical catch statistics.
+Annual changes in reported or reconstructed BSH and SMA catches should therefore not be interpreted as direct indicators of changes in abundance. Rather, temporal patterns may reflect some combination of:
 
-Consequently, reconstructed catch histories should be interpreted primarily as improvements in fisheries statistics rather than biological indicators of population change.
+* improvements in reporting and species identification;
+* entry of new fleets or changes in fleet participation;
+* changes in fishing behaviour and spatial distribution;
+* changes in retention practices;
+* target switching, including changes in the importance of sharks relative to tuna and billfish;
+* changes in the taxonomic resolution of reported shark catches; and
+* retrospective revisions of historical catch statistics.
 
-A further complication is that historical retained catch databases continue to be revised as CPCs update historical tuna catches. These revisions can substantially alter reconstructed shark catch histories even when reconstruction methodology remains unchanged. For reproducibility and comparability among stock assessments, consideration should be given to maintaining a frozen historical retained catch baseline for assessment purposes while allowing subsequent revisions to be evaluated separately.
+Consequently, reconstructed catch histories should be interpreted primarily as improvements in fisheries statistics and estimates of historical removals rather than as biological indicators of population change.
+
+A further complication is that historical retained-catch databases continue to be revised as CPCs update historical catch records. These revisions can substantially alter reconstructed shark catch histories even when the reconstruction methodology remains unchanged. This is particularly important for methods that estimate missing shark catches relative to reported catches of associated target species, because retrospective changes to the denominator can propagate directly into reconstructed catches. For reproducibility and comparability among stock assessments, consideration should therefore be given to maintaining a frozen historical retained-catch baseline for assessment purposes while allowing subsequent data revisions and their effects on reconstructed histories to be evaluated separately.
+
+This study develops a reconstruction framework that explicitly separates complete non-reporting from taxonomic aggregation and evaluates reconstruction methods according to the information available within each reporting state. Empirical hierarchical approaches are compared with statistical species-composition models where sufficient data are available, and independent catch-and-effort information is used to evaluate the consistency of observed species-composition patterns. Rather than imposing a common reconstruction method on both species, the framework allows the preferred approach to differ between BSH and SMA where their reporting histories and empirical support differ.
 
 The objectives of this study are therefore to:
 
@@ -159,21 +214,18 @@ The objectives of this study are therefore to:
 
 ## Data sources
 
-Three complementary IOTC databases were used.
+Three complementary IOTC databases were used: retained catch (RC), catch and effort (CA), and effort (EF).
 
-1. Retained Catch (RC)
-2. Catch and Effort (CA)
-3. Effort (EF)
+The retained catch database formed the primary basis for historical reconstruction because it provides annual retained catches by fleet, fishery, and reported species or taxonomic category. Catch-and-effort data were used to independently evaluate species composition observed in the retained-catch data and to examine the spatial and temporal development of species-specific reporting. Geo-referenced data were used diagnostically to evaluate changes in reporting and fishery distribution, but were not used directly to estimate reconstructed catch. Effort data were used to identify active fisheries and provide additional evidence concerning fishing activity during periods with incomplete shark reporting.
 
-The retained catch database forms the primary basis for historical reconstruction because it provides the official annual retained catches by fleet and fishery.
-
-Catch-and-effort data were used to estimate species composition of reported shark catches and to evaluate consistency between reporting systems. Effort data were used to identify active fisheries and provide additional evidence supporting reconstruction of historically unreported catches.
+Analyses focused on blue shark (*Prionace glauca*; BSH) and shortfin mako (*Isurus oxyrinchus*; SMA). Historical catches reported under unresolved shark categories were retained separately from species-specific catches so that taxonomic aggregation and complete non-reporting could be treated as distinct reconstruction problems.
 
 ## Reconstruction framework
+Analyses were conducted primarily at the Fleet × Fishery × Year level. Spatial analyses of geo-referenced catch-and-effort data were conducted separately to evaluate the evolution and geographic consistency of reporting and to assess whether temporal changes in species-specific records were consistent with changes in reporting, fishing distribution, or both. Spatial information was not used directly in the reconstruction estimator. The reconstruction framework distinguished two fundamentally different missing-catch processes. Complete non-reporting occurs when fishing activity and target catch are reported but no relevant shark catch is reported. Taxonomic aggregation occurs when shark catch is reported but only under unresolved categories such as sharks nei (`SKH`) or mako sharks nei (`MAK`). These processes were treated separately because the first requires estimation of the magnitude of shark catch, whereas the second requires allocation of an observed catch total among species.
 
-All analyses were conducted primarily at the Fleet × Fishery × Year level, with spatial catch-and-effort analyses used separately to evaluate the evolution and geographic consistency of reporting. The reconstruction framework distinguishes two fundamentally different missing-catch processes. **Complete non-reporting** occurs when fishing activity and target catch are reported but no shark catch is reported. **Taxonomic aggregation** occurs when shark catch is reported but only under unresolved categories such as sharks nei (`SKH`) or mako sharks nei (`MAK`). These processes were treated separately because the first requires estimation of the magnitude of shark catch whereas the second requires allocation of an observed catch total among species.
+Reporting-state labels were used descriptively, but reconstruction eligibility was defined independently for each unresolved catch component. This was particularly important for SMA because `MAK` and `SKH` can coexist within a Fleet × Fishery × Year stratum and represent different levels of taxonomic resolution. Their allocations were therefore treated independently rather than assigning each stratum to a single mutually exclusive reporting state.
 
-Reporting-state labels were used descriptively, but reconstruction eligibility was defined independently for each unresolved catch component. This was particularly important for SMA because `MAK` and `SKH` can coexist within a Fleet × Fishery × Year stratum and require different allocation procedures. Complete non-reporting reconstruction was restricted to strata with target catch but no reported SMA, `MAK`, or `SKH`, preventing the non-reporting estimator from being added to strata already represented by reported or taxonomically unresolved shark catch.
+Complete non-reporting reconstruction was restricted to strata containing reported target catch but no reported catch in the species-specific or unresolved shark categories relevant to that reconstruction. For SMA, for example, complete non-reporting reconstruction was applied only when SMA, `MAK`, and `SKH` were all absent. This prevented estimates of completely unreported shark catch from being added to strata in which shark catch was already represented by a species-specific or taxonomically unresolved category.
 
 ## Reconstruction of complete non-reporting
 
@@ -182,30 +234,34 @@ For both BSH and SMA, complete non-reporting was evaluated using donor ratios re
 For a candidate stratum, expected species catch was estimated as
 
 \[
-\hat C_s = R_s C_{Target},
+\hat C_s = R_s C_{\mathrm{Target}},
 \]
 
 where \(s\) denotes BSH or SMA and
 
 \[
-R_s = \frac{C_s}{C_{Target}}
+R_s = \frac{C_s}{C_{\mathrm{Target}}}
 \]
 
 was estimated from donor fisheries with observed species-specific reporting.
 
+The target-catch denominator included the principal tuna and billfish species associated with these fisheries. The ratio estimator was intended to reconstruct shark catch where no shark catch total was available; it was not used to allocate catches already reported under unresolved shark categories.
+
 ### Donor hierarchy and temporal support
 
-Donor ratios were selected hierarchically, favoring the closest available empirical match. The general hierarchy prioritized the same fleet and fishery before progressively broader donor pools. Each reconstructed value retained the donor source, donor fleets, donor period, and temporal relationship between donor and recipient.
+Donor ratios were selected hierarchically, favoring the closest available empirical match. The hierarchy prioritized information from the same fleet and fishery before progressively broader donor pools were considered. Each reconstructed value retained information on donor source, donor fleet or fleets, donor period, and the temporal relationship between the donor information and recipient stratum.
 
-Temporal support was classified as **within donor period**, **backcast**, or **forward extrapolation**. Strata for which no suitable donor existed were retained as unresolved fishing activity rather than being assigned an estimate.
+Temporal support was classified as within donor period, backcast, or forward extrapolation. This distinction was retained because an estimate based on observations overlapping the recipient period has different empirical support from one requiring extrapolation before or after the period represented by the donor data. Strata for which no suitable donor existed were retained as unresolved fishing activity rather than being assigned an estimate from an increasingly dissimilar donor pool.
 
-For SMA, longline donors required additional stratification because nominal longline fisheries differed substantially in shark association. Deep-freezing longline (`LLD`), fresh longline (`LLF`), other longline (`LLO`), and shark-targeting longline (`SLL`, where identified) were therefore not pooled indiscriminately. Broader longline fallback ratios were permitted only within compatible longline classes. This avoided borrowing the high SMA-to-target ratios observed in shark-associated longline fisheries for conventional tuna or swordfish longline strata. Large observed donor ratios were not mechanically capped because they may reflect genuine shark targeting or target switching; instead, donor compatibility and support determined whether they were used.
+For SMA, longline donors required additional stratification because nominal longline fisheries differed substantially in their association with sharks. Deep-freezing longline (`LLD`), fresh longline (`LLF`), other longline (`LLO`), and shark-targeting longline (`SLL`, where identified) were therefore not pooled indiscriminately. Broader longline fallback ratios were permitted only within compatible longline classes. This avoided borrowing the high SMA-to-target ratios observed in shark-associated longline fisheries for conventional tuna or swordfish longline strata.
+
+Large observed donor ratios were not mechanically capped because high ratios may represent genuine shark targeting, increased shark retention, or switching between target species. Instead, the reconstruction controlled their application through donor compatibility and temporal support. This approach preserves observed fishery behavior while limiting unsupported transfer of those observations to dissimilar fisheries.
 
 ## Hierarchical species-composition reconstruction
 
-Taxonomically unresolved shark catches were reconstructed using **hierarchical species-composition reconstruction (HSCR)**. HSCR estimates species composition from observed, species-identified donor strata and progressively broadens the donor pool only when finer-scale information is unavailable. This differs from the ratio reconstruction used for complete non-reporting: HSCR allocates an observed unresolved shark total and does not estimate total shark catch from target catch.
+Taxonomically unresolved shark catches were reconstructed using hierarchical species-composition reconstruction (HSCR). HSCR estimates species composition from observed, species-identified donor strata and progressively broadens the donor pool when information at a finer level is unavailable. This differs from the ratio reconstruction used for complete non-reporting: HSCR allocates an observed unresolved shark catch and does not estimate total shark catch from target catch.
 
-For generic shark catch,
+For generic shark catch, the species proportion was estimated as
 
 \[
 p_s =
@@ -213,20 +269,22 @@ p_s =
 {\sum C_{\mathrm{identified\ sharks}}},
 \]
 
-and
+and unresolved catch was allocated as
 
 \[
 \hat C_s =
-p_s C_{SKH}.
+p_s C_{\mathrm{SKH}}.
 \]
 
-Alternative HSCR scenarios were retained to characterize uncertainty associated with the level of donor pooling. N1 uses the more restrictive empirical hierarchy, whereas N2 permits broader donor support where finer information is unavailable. The exact hierarchy differs where required by species-specific reporting structure.
+The hierarchy was intended to retain fishery- and fleet-specific information where available while providing a transparent sequence of broader empirical donors when local species-composition information was unavailable. Alternative HSCR scenarios were retained to characterize uncertainty associated with the level of donor pooling. N1 uses the more restrictive empirical hierarchy, whereas N2 permits broader donor support where finer information is unavailable. The exact hierarchy differs where required by the reporting structure of each species.
 
 ### Blue shark
 
-For BSH, the principal taxonomic ambiguity is allocation of generic shark catch (`SKH`) to blue shark. HSCR therefore provides the primary species-composition reconstruction. A GAM-based composition model was also examined as a statistical alternative using fishery effects, temporal smooths, fleet effects, and target-composition covariates. The GAM was useful for examining whether broader covariate information changed the inferred composition and for identifying sensitivity to fleet and temporal structure. Its role in the final BSH reconstruction is evaluated from predictive diagnostics and support rather than assumed to be equivalent to HSCR.
+For BSH, the principal taxonomic ambiguity is allocation of generic shark catch (`SKH`) to blue shark. HSCR therefore provides an empirical species-composition reconstruction based on identified shark catches. A generalized additive model (GAM) of BSH composition was also examined as a statistical alternative using fishery effects, temporal smooths, fleet effects, and covariates describing the composition of associated target catch.
 
-Complete BSH non-reporting was reconstructed separately using the donor-ratio hierarchy described above. Thus, for BSH the principal components are reported BSH, BSH allocated from `SKH`, and BSH reconstructed for complete non-reporting.
+The statistical model was used to evaluate whether broader temporal, fleet, and fishery information provided evidence for species compositions differing from those obtained through hierarchical empirical borrowing. Model performance and extrapolation were evaluated using predictive diagnostics rather than assuming that improved in-sample fit necessarily represented improved reconstruction of historical unresolved catches.
+
+Complete BSH non-reporting was reconstructed separately using the donor-ratio hierarchy described above. The BSH reconstruction therefore contains three conceptually distinct components: reported BSH, BSH allocated from generic `SKH`, and BSH estimated for complete non-reporting.
 
 ### Shortfin mako
 
@@ -235,41 +293,175 @@ SMA requires an additional taxonomic level because historical catches may be rep
 First, `MAK` was allocated between SMA and longfin mako (`LMA`) using observed identified-mako composition,
 
 \[
-p_{SMA|mako}
+p_{\mathrm{SMA|mako}}
 =
-\frac{C_{SMA}}
-{C_{SMA}+C_{LMA}},
+\frac{C_{\mathrm{SMA}}}
+{C_{\mathrm{SMA}}+C_{\mathrm{LMA}}},
 \]
 
-and
+with unresolved mako catch allocated as
 
 \[
-\hat C_{SMA,MAK}
+\hat C_{\mathrm{SMA,MAK}}
 =
-p_{SMA|mako} C_{MAK}.
+p_{\mathrm{SMA|mako}} C_{\mathrm{MAK}}.
 \]
 
-The identified-mako data were strongly dominated by SMA in the principal fisheries. A GAM was examined as an alternative for `MAK → SMA`, but leave-one-fleet-out validation showed poor transferability, including negative rank correlations within the principal fishery groups. Because the empirical estimator has a direct taxonomic interpretation and substantially stronger support, the hierarchical empirical allocation was retained as the recommended `MAK → SMA` method; the MAK GAM is retained only as a diagnostic.
+The identified-mako data were strongly dominated by SMA in the principal fisheries. A GAM was examined as an alternative for `MAK → SMA`, but leave-one-fleet-out validation showed poor transferability, including negative rank correlations within the principal fishery groups. Because the empirical estimator has a direct taxonomic interpretation and stronger predictive support, hierarchical empirical allocation was retained as the recommended `MAK → SMA` method. The MAK GAM was retained as a diagnostic rather than as a reconstruction scenario.
 
-Second, `SKH` was allocated to SMA using HSCR. A beta-regression GAM was evaluated as a statistical sensitivity analysis. The final GAM included fishery effects, fishery-specific temporal smooths, a fleet random effect, and covariates describing the associated target catch. Although this model explained substantial in-sample variation, leave-one-fleet-out performance was modest. The response also contained many exact zeros, particularly in line and purse-seine fisheries, requiring boundary adjustment for beta regression. The fitted model consequently generated positive SMA composition in some periods where empirical SMA composition was zero or near zero and produced substantial historical backcasting in gillnet fisheries. HSCR N1 and N2 were therefore retained as the primary `SKH → SMA` reconstruction, while the GAM is retained as a deliberately broad statistical sensitivity.
+Second, `SKH` was allocated to SMA using HSCR. A beta-regression GAM was evaluated as a statistical sensitivity analysis. The response variable was the proportion of identified shark catch represented by SMA,
 
-Third, complete SMA non-reporting was reconstructed using the donor-ratio hierarchy only where target catch was present and SMA, `MAK`, and `SKH` were all absent. The three SMA reconstruction components are additive only where they represent distinct unresolved categories; the complete non-reporting component was explicitly prevented from overlapping reported or taxonomically unresolved shark catch.
+\[
+p_{\mathrm{SMA}}
+=
+\frac{C_{\mathrm{SMA}}}
+{\sum C_{\mathrm{identified\ sharks}}}.
+\]
+
+The final GAM included fishery effects, fishery-specific temporal smooths, a fleet random effect, and covariates describing the composition of associated target catch. Leave-one-fleet-out cross-validation was used to evaluate transferability among fleets. Because the fleet random effect cannot be estimated for an omitted fleet, this effect was excluded during prediction to the withheld fleet, thereby evaluating transferability of the fishery, temporal, and target-composition components of the model.
+
+Third, complete SMA non-reporting was reconstructed using the donor-ratio hierarchy only where target catch was present and SMA, `MAK`, and `SKH` were all absent. The three reconstruction components were additive only where they represented distinct unresolved categories, and the complete non-reporting component was explicitly prevented from overlapping reported or taxonomically unresolved shark catch.
+
+### Statistical treatment of species-composition proportions
+
+The statistical species-composition models were formulated as beta-regression GAMs because the quantity of interest was a conditional species-composition proportion rather than catch rate or absolute catch. The response represents the fraction of identified shark catch assigned to the focal species within strata for which identified shark catch was available.
+
+Observed proportions included exact zeros and, for some composition datasets, exact ones. Because the beta distribution is defined on the open interval \((0,1)\), these boundary observations were moved slightly into the interior of the distribution before model fitting. The original zero and one observations were retained for descriptive summaries and model evaluation.
+
+A hurdle or delta formulation was considered conceptually because zero observations were common, particularly for SMA in line and purse-seine fisheries. A conventional fisheries delta model, consisting of a binomial model for occurrence and a continuous model such as a lognormal distribution for positive catch, was not used because the response in this analysis was a bounded species-composition proportion rather than a non-negative catch or CPUE observation. Applying a binomial–lognormal delta model would therefore change the quantity being modeled and would not directly provide an unconditional species-composition proportion without an additional combination step.
+
+A two-part model could instead have been formulated specifically for composition, with one component estimating the probability that SMA occurred in the identified shark catch and a second estimating its conditional proportion when present. Such a model would distinguish structural or sampling zeros from variation in positive species composition. However, the primary objective of the GAM analysis was to evaluate whether a flexible statistical species-composition model provided a useful alternative to empirical HSCR, rather than to develop a new primary estimator.
+
+For SMA, cross-validation indicated that the more important limitation was transfer of species composition among fleets and extrapolation into periods with limited species-specific observations. The beta GAM produced positive predicted SMA composition in some fisheries and periods where observed composition was zero or near zero and generated substantial historical extrapolation in gillnet fisheries. Increasing model complexity through a hurdle formulation would not by itself resolve the lack of empirical support for those fleet and temporal extrapolations. A hurdle model was therefore not pursued for the present reconstruction. The beta GAM was retained as a broad statistical sensitivity against which the empirical HSCR reconstruction could be compared.
+
+This distinction is important when interpreting the GAM results. The beta model should not be viewed as evidence that observed zeros are necessarily generated by the same process as positive proportions. Rather, it provides a smooth statistical alternative that intentionally allows information to be shared across observations. The degree to which that sharing is supported for historical reconstruction was evaluated through cross-validation, temporal support, and comparison with the empirical HSCR estimates.
+
+<!--the Beta GAM was used as the statistical sensitivity.
+
+The key distinction is that the response being modeled is a species-composition proportion, not a conventional positive continuous catch or CPUE response. A traditional delta model—binomial occurrence followed by lognormal positive catch—would change the estimand. 
+
+A hurdle formulation for composition is possible, but it would separately model whether SMA occurs in the identified shark composition and its conditional proportion when present. Given the weak out-of-fleet transfer already demonstrated, adding that complexity would not address the more important limitation: extrapolation of composition into fleets and periods with limited empirical support.calling a binomial + lognormal model a direct alternative to the beta GAM is not quite correct here. A more direct two-part alternative would be a binomial occurrence model plus a model for the positive proportion—e.g., beta conditional on \(0<p<1\). If exact ones also need their own process, it becomes a zero/one-inflated beta-type problem. That distinction is useful because it demonstrates that the choice was driven by the estimand, not unfamiliarity with delta models.-->
 
 ## Comparison of retained catch and catch-and-effort composition
 
-Species composition estimated from retained catch (RC) was compared with composition calculated independently from geo-referenced catch-and-effort (CA) data for matched Fleet × Fishery × Year strata. For SMA, two comparisons were made: broad shark composition relevant to `SKH → SMA`, and identified-mako composition relevant to `MAK → SMA`.
+Species composition estimated from retained catch (RC) was compared with composition calculated independently from geo-referenced catch-and-effort (CA) data for matched Fleet × Fishery × Year strata. These comparisons evaluated whether composition patterns inferred from the retained-catch data were broadly consistent with a separate IOTC reporting system.
 
-The RC and CA comparisons were used as validation of the taxonomic allocation assumptions rather than as direct replacements for RC. Broad SMA shark composition showed generally good agreement in matched longline and line strata, while identified-mako composition was overwhelmingly dominated by SMA in the principal longline and line fisheries. Spatial reporting analyses were also used to distinguish absence of species-specific reporting from absence of the species in the fishery.
+For SMA, two comparisons were made. The first examined broad shark composition relevant to `SKH → SMA`, using the proportion of identified shark catch represented by SMA. The second examined identified-mako composition relevant to `MAK → SMA`, using the proportion of identified mako catch represented by SMA.
+
+RC and CA showed generally similar broad SMA composition in matched longline and line strata. Identified-mako composition was also strongly dominated by SMA in the principal longline and line fisheries in both datasets. These comparisons provided independent support for the taxonomic allocation assumptions but were not used as direct replacements for RC in the historical reconstruction.
+
+The RC–CA comparison was interpreted as validation of observed species-composition structure rather than validation of historical extrapolation. Agreement between the two datasets in periods with species-specific observations does not demonstrate that the same composition can be extrapolated to fleets or earlier periods lacking species-specific reporting. Donor hierarchy, temporal support, and predictive diagnostics were therefore considered separately when evaluating historical reconstruction.
+
+Spatial analyses of CA data were additionally used to examine the geographic development of species-specific reporting. These analyses helped distinguish the absence of a species-specific record from evidence that the species itself was absent from the fishery.
+
+### Temporal aggregation of reporting patterns
+
+Spatial catch and effort data were summarized into six reporting periods: 1950–1963, 1964–1980, 1981–1994, 1995–2004, 2005–2014, and 2015–2025. These periods were used consistently across the spatial analyses and species-composition diagnostics. They were defined as broad reporting eras rather than equal-duration statistical bins.
+
+The temporal aggregation was intended to balance two competing requirements. Individual years are frequently too sparse to characterize historical spatial reporting, particularly for species-specific shark catches, whereas aggregation over the entire time series would obscure the progressive transition from generic to species-specific reporting. The selected periods therefore retain relatively broad intervals during the early portion of the time series, when reporting was sparse, and shorter intervals during the more recent period, when species-specific reporting and spatial coverage increased.
+
+The periods should not be interpreted as biological regimes or as implying abrupt changes in fisheries or reporting at their boundaries. They provide an operational framework for comparing changes in the availability, taxonomic resolution, and spatial coverage of the historical data. Reconstruction calculations were conducted at the Fleet × Fishery × Year level; aggregation into reporting periods was used for donor support, diagnostics, and visualization rather than to assume constant catch or species composition within each period.
+
+## Spatial evaluation of reporting patterns
+
+Geo-referenced catch-and-effort (CA) data were used to evaluate the spatial and temporal development of shark reporting and to provide additional context for interpreting historical absences of species-specific records. These analyses were conducted separately from the Fleet × Fishery × Year reconstruction and were not used to spatially allocate or directly estimate reconstructed catch.
+
+For BSH and SMA, reported catches were summarized spatially through time to compare the geographic distribution of generic shark reporting with the subsequent occurrence of species-specific reporting. Particular attention was given to fisheries with substantial historical shark catches, including longline, line, and gillnet fisheries. The objective was to determine whether generic and species-specific reporting occurred in overlapping fishing areas and whether species-specific reporting progressively appeared within areas where shark catches had previously been reported only at broader taxonomic levels.
+
+The spatial analyses were used primarily to evaluate the interpretation of historical reporting states. Where generic shark reporting preceded species-specific reporting in the same or overlapping fishing areas, the absence of an early BSH or SMA record was not interpreted as evidence that the species was absent from the fishery. Instead, such patterns were considered consistent with a transition from aggregated to species-specific reporting.
+
+Spatial data were also used to identify cases where apparent changes in species composition could plausibly reflect changes in the geographic distribution of fishing activity rather than reporting alone. Consequently, spatial overlap was treated as supporting evidence for the reconstruction framework rather than as sufficient evidence for assigning a species composition to an unresolved catch.
+
+The spatial analyses therefore served as diagnostics of reporting history, fishery distribution, and the plausibility of temporal extrapolation. Reconstruction estimates remained based on the Fleet × Fishery × Year donor and species-composition procedures described above, thereby avoiding the assumption that spatial co-occurrence alone provides sufficient information to reconstruct historical species-specific catch.
 
 ## Reconstruction scenarios
 
-Final reconstruction scenarios retain each component separately so that methodological uncertainty can be propagated into stock assessment analyses.
+Final reconstruction scenarios retain the individual reconstruction components so that uncertainty associated with different missing-catch processes and allocation methods remains identifiable and can subsequently be propagated into stock assessment analyses.
 
-For BSH, scenarios combine reported BSH, BSH allocated from generic `SKH`, and BSH reconstructed for complete non-reporting. The species-composition alternatives are evaluated according to their empirical and predictive support.
+For BSH, scenarios combine reported BSH, BSH allocated from generic `SKH`, and BSH reconstructed for complete non-reporting. Alternative species-composition approaches are evaluated according to their empirical support, predictive performance, and the extent of temporal or fishery extrapolation required.
 
-For SMA, the recommended reconstruction combines reported SMA, hierarchical empirical allocation of `MAK`, HSCR allocation of `SKH`, and the supported donor-ratio reconstruction for complete non-reporting. HSCR N1 and N2 provide the principal species-composition alternatives. The SKH GAM is retained as a statistical sensitivity and the MAK GAM as a diagnostic rather than as recommended reconstruction components.
+For SMA, the recommended reconstruction combines reported SMA, hierarchical empirical allocation of `MAK`, HSCR allocation of `SKH`, and the supported donor-ratio reconstruction for complete non-reporting. HSCR N1 and N2 provide the principal species-composition alternatives for generic shark catch.
+
+The `SKH → SMA` GAM is retained as a statistical sensitivity rather than a co-equal reconstruction scenario. It is used to characterize the consequences of allowing a smooth statistical model to transfer species-composition information more broadly across fisheries and time than the empirical HSCR hierarchy. The `MAK → SMA` GAM is retained only as a diagnostic because its predictive performance did not support its use in reconstructing unresolved mako catches.
+
+The resulting scenarios therefore do not impose methodological symmetry between BSH and SMA or among reporting categories. Reconstruction methods were selected according to the information contained in each reporting state and the empirical and predictive support available for transferring species-composition or catch-rate information to unresolved historical strata.
 
 # Results
+## Temporal and spatial development of shark reporting 
+
+The retained-catch data show substantial changes in the taxonomic resolution of shark reporting through time (Figure @fig-rc-shark-reporting). Generic Sharks NEI (`SKH`) occur throughout much of the historical series and account for large reported catches during periods when species-specific reporting was limited. Species-specific BSH and SMA reporting becomes progressively more prominent later in the series, while `MAK` represents an intermediate level of taxonomic resolution relevant specifically to the reconstruction of SMA.
+
+These temporal patterns illustrate why the occurrence of a species-specific catch record cannot be interpreted independently of reporting practice. In particular, the transition from unresolved shark categories toward BSH and SMA reporting provides evidence that at least part of the apparent increase in species-specific catch reflects increased taxonomic resolution rather than an equivalent increase in shark abundance or encounter rates.
+```{r}
+#| label: fig-rc-shark-reporting
+#| fig-cap: "Annual retained catch reported as Sharks NEI (SKH), mako sharks NEI (MAK), blue shark (BSH), and shortfin mako (SMA). Panels use independent vertical scales to show changes in the timing and magnitude of reporting for each category."
+#| out-width: "100%"
+
+knitr::include_graphics(
+  file.path(
+    spatial_figure_dir,
+    "rc_shark_reporting_annual.png"
+  )
+)
+```
+
+The spatial data show that generic shark reporting was geographically extensive well before species-specific SMA reporting became widespread (Figure @fig-skh-spatial). Sharks NEI catches occur across broad areas of the Indian Ocean during the earlier reporting periods and subsequently overlap areas in which species-specific shark catches are reported.
+
+The spatial extent of `SKH` is important for interpretation of the historical catch record. Generic reporting was not confined to a small peripheral fishery that can readily be separated from later species-specific fisheries. Instead, unresolved shark catches occur within areas subsequently characterized by more resolved shark reporting. This is consistent with a progressive change in reporting resolution and provides the basis for treating a portion of historical generic shark catch as taxonomically unresolved rather than assuming that species absent from the reported record were absent from those fisheries.
+
+```{r}
+#| label: fig-skh-spatial
+#| fig-cap: "Spatial distribution of reported Sharks NEI (SKH) catch in the IOTC geo-referenced catch-and-effort data by reporting period. Point area is proportional to reported catch."
+#| out-width: "100%"
+
+knitr::include_graphics(
+  fig_skh_spatial
+)
+```
+
+Species-specific SMA reporting shows a markedly different temporal pattern (Figure @fig-sma-spatial). Spatially resolved SMA records are sparse during the early reporting periods and expand substantially from 1995–2004 onward. By 2005–2014 and particularly 2015–2025, reported SMA occurs across much of the western, central, and southern Indian Ocean and within many areas where generic shark catches had previously been reported.
+
+The expansion of SMA reporting is therefore both temporal and spatial. This pattern does not demonstrate that SMA was absent from the earlier fisheries. Rather, the overlap between later SMA reporting, historical generic shark reporting, and the distribution of fishing activity is consistent with improvement in species-specific reporting through time.
+
+```{r}
+#| label: fig-sma-spatial
+#| fig-cap: "Spatial distribution of reported shortfin mako (SMA) catch in the IOTC geo-referenced catch-and-effort data by reporting period. Point area is proportional to reported catch."
+#| out-width: "100%"
+
+knitr::include_graphics(
+  fig_sma_spatial
+)
+```
+
+The spatial development of species-specific shark reporting was evaluated relative to the distribution of fishing activity (Figure @fig-longline-effort-spatial). Longline effort was geographically extensive during periods in which species-specific shark records were sparse, including substantial fishing activity across areas where BSH and SMA were subsequently reported.
+
+This comparison provides an important distinction between absence of fishing and absence of species-specific reporting. Areas without early BSH or SMA records were not necessarily areas without relevant fishing activity. Consequently, the absence of a species-specific catch record was not treated as evidence of zero historical catch when the same fisheries reported target catches or unresolved shark catches.
+
+```{r}
+#| label: fig-longline-effort-spatial
+#| fig-cap: "Spatial distribution of reported longline effort by reporting period. Point area is proportional to the number of hooks reported in the IOTC geo-referenced effort data."
+#| out-width: "100%"
+
+knitr::include_graphics(
+  fig_ll_effort_spatial
+)
+
+```
+
+Considering the categories jointly illustrates the progressive change in taxonomic resolution more directly (Figure @fig-shark-reporting-spatial). Earlier spatial records are dominated by unresolved shark reporting, whereas later periods increasingly contain BSH and SMA either alone or in combination with `SKH`. Generic and species-specific reporting also coexist in the later periods, indicating that the transition was neither instantaneous nor uniform among fisheries and regions.
+
+These results support the reporting-state interpretation used in the reconstruction. Generic reporting clearly precedes species-specific reporting in many of the same regions, while species-specific reporting expands through time. An observed absence of BSH or SMA in the early species-specific records is therefore plausibly a reporting-state problem rather than evidence of absence from the fishery. The spatial information was used to evaluate this interpretation and the plausibility of temporal extrapolation; it was not used directly to assign species composition or reconstruct catch.
+```{r}
+#| label: fig-shark-reporting-spatial
+#| fig-cap: "Changes in the spatial distribution and taxonomic resolution of shark reporting through time. Categories indicate whether spatial cells contained reported blue shark (BSH), shortfin mako (SMA), Sharks NEI (SKH), or combinations of these categories during each reporting period."
+#| out-width: "100%"
+
+knitr::include_graphics(
+  fig_shark_reporting_spatial
+)
+```
+
+
 ## Sensitivity analysis of SMA species-composition reconstruction
 
 A generalized additive model (GAM) was evaluated as an alternative statistical approach for allocating generic shark catch (`SKH`) to shortfin mako. The final model incorporated fishery effects, fishery-specific temporal smooths, fleet random effects, and covariates describing the composition of the associated target catch. The model explained 64.9% of the deviance in the observed species-composition data. However, leave-one-fleet-out validation indicated substantially weaker predictive performance when the model was applied outside fleets represented in the fitting data (MAE = 0.200, RMSE = 0.280, Spearman \(\rho = 0.219\)). Predictive performance was strongest for longline fisheries and weak for gillnet and line fisheries.
