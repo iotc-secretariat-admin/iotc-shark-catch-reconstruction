@@ -47,6 +47,47 @@ sma_ratio_candidates <- sma_reporting_states |>
     rc_target > 0
   )
 
+# fix the donor class. “all longline” is still too broad a fallback donor pool. LLO LLD LLF are all wildly different
+add_longline_class <- function(dat) {
+
+  dat |>
+    mutate(
+
+      longline_class = case_when(
+
+        FISHERY_GROUP_CODE != "LL" ~
+          NA_character_,
+
+        FISHERY_CODE == "LLD" ~
+          "LL_deep_freezing",
+
+        FISHERY_CODE == "LLF" ~
+          "LL_fresh",
+
+        FISHERY_CODE == "LLO" ~
+          "LL_other",
+
+        # If SLL occurs as a fishery code in the object
+        FISHERY_CODE == "SLL" ~
+          "LL_shark_target",
+
+        TRUE ~
+          "LL_other_unspecified"
+      )
+    )
+}
+
+sma_ratio_donors <-
+  add_longline_class(
+    sma_ratio_donors
+  )
+
+sma_ratio_candidates <-
+  add_longline_class(
+    sma_ratio_candidates
+  )
+
+
 
 # =============================================================================
 # 3. L1: fleet x fishery x period
@@ -84,15 +125,17 @@ ratio_L1 <- sma_ratio_donors |>
 
 
 # =============================================================================
-# 4. L2: fleet x longline group x period
+# 4. L2: fleet x same longline class x period
 # =============================================================================
 
 ratio_L2 <- sma_ratio_donors |>
   filter(
-    FISHERY_GROUP_CODE == "LL"
+    FISHERY_GROUP_CODE == "LL",
+    !is.na(longline_class)
   ) |>
   group_by(
     FLEET_CODE,
+    longline_class,
     period
   ) |>
   summarise(
@@ -107,10 +150,16 @@ ratio_L2 <- sma_ratio_donors |>
       max(YEAR),
 
     donor_target_mt_L2 =
-      sum(rc_target),
+      sum(
+        rc_target,
+        na.rm = TRUE
+      ),
 
     donor_sma_mt_L2 =
-      sum(rc_sma),
+      sum(
+        rc_sma,
+        na.rm = TRUE
+      ),
 
     ratio_L2 =
       donor_sma_mt_L2 /
@@ -169,6 +218,7 @@ ratio_L4 <- sma_ratio_donors |>
       "LL"
   ) |>
   group_by(
+    longline_class,
     period
   ) |>
   summarise(
@@ -236,16 +286,17 @@ sma_ratio_candidates <- sma_ratio_candidates |>
   #
   # NOTE:
   # These donor values are joined to all rows but are only eligible below
-  # when the candidate itself belongs to FISHERY_GROUP_CODE == "LL".
+  # when the candidate itself belongs to the same longline class i.e. LLO or LLF FISHERY_GROUP_CODE == "LL".
   # ---------------------------------------------------------------------------
 
-  left_join(
-    ratio_L2,
-    by = c(
-      "FLEET_CODE",
-      "period"
-    )
-  ) |>
+left_join(
+  ratio_L2,
+  by = c(
+    "FLEET_CODE",
+    "longline_class",
+    "period"
+  )
+)|>
 
   # ---------------------------------------------------------------------------
   # L3: same fishery x period, potentially borrowing across fleets
@@ -267,7 +318,9 @@ sma_ratio_candidates <- sma_ratio_candidates |>
 
   left_join(
     ratio_L4,
-    by = "period"
+    by = c(
+          "longline_class",
+          "period")
   ) |>
 
   mutate(
@@ -532,7 +585,49 @@ sma_ratio_donors |>
     desc(pooled_ratio)
   ) |>
   print(n = Inf)
+# 
+# check the pooled ratios across the types of LL for the different periods. ? any big changes? 
+sma_ratio_donors |>
+  filter(
+    FISHERY_GROUP_CODE == "LL"
+  ) |>
+  group_by(
+    longline_class,
+    period
+  ) |>
+  summarise(
 
+    n_strata =
+      n(),
+
+    n_fleets =
+      n_distinct(FLEET_CODE),
+
+    target_mt =
+      sum(
+        rc_target,
+        na.rm = TRUE
+      ),
+
+    sma_mt =
+      sum(
+        rc_sma,
+        na.rm = TRUE
+      ),
+
+    pooled_ratio =
+      sma_mt /
+        target_mt,
+
+    first_year =
+      min(YEAR),
+
+    last_year =
+      max(YEAR),
+
+    .groups = "drop"
+  ) |>
+  print(n = Inf)
 
 # =======================================================
 #  Make a summary 
@@ -591,3 +686,22 @@ write_csv(
   sma_nonreport_summary,
   "outputs/sma/sma_nonreport_summary.csv"
 )
+
+
+
+# check and re-check. 
+sma_nonreport_summary
+
+sma_reconstruction_summary # this comes from R\reconstruction\reconstruct_sma_scenarios.R
+
+sma_scenario_base |>
+  count(invalid_nonreport_overlap)
+
+sma_ratio_candidates |>
+  count(
+    ratio_source,
+    ratio_support,
+    temporal_support,
+    sort = TRUE
+  )
+

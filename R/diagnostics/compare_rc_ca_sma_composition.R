@@ -889,3 +889,635 @@ write_csv(
   sma_ll_composition_summary,
   "outputs/sma/sma_rc_ca_longline_class_summary.csv"
 )
+
+
+
+
+
+
+
+
+
+# more diagnostics 
+sma_skh_gam_by_group |>
+  print(n = Inf)
+
+
+
+sma_skh_gam_by_group_diag <-
+  sma_skh_gam_prediction |>
+  group_by(
+    FISHERY_GROUP_CODE
+  ) |>
+  summarise(
+
+    total_skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    supported_skh_mt =
+      sum(
+        skh_mt[
+          gam_supported
+        ],
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_gam_mt =
+      sum(
+        sma_from_skh_gam,
+        na.rm = TRUE
+      ),
+
+    supported_fraction =
+      supported_skh_mt /
+        total_skh_mt,
+
+    implied_p_sma =
+      sma_from_skh_gam_mt /
+        supported_skh_mt,
+
+    .groups = "drop"
+  ) |>
+  arrange(
+    desc(
+      sma_from_skh_gam_mt
+    )
+  )
+
+sma_skh_gam_by_group_diag |>
+  print(n = Inf)
+
+
+sma_skh_gam_by_period_diag <-
+  sma_skh_gam_prediction |>
+  group_by(
+    period
+  ) |>
+  summarise(
+
+    total_skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    supported_skh_mt =
+      sum(
+        skh_mt[
+          gam_supported
+        ],
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_gam_mt =
+      sum(
+        sma_from_skh_gam,
+        na.rm = TRUE
+      ),
+
+    implied_p_sma =
+      sma_from_skh_gam_mt /
+        supported_skh_mt,
+
+    .groups = "drop"
+  )
+
+sma_skh_gam_by_period_diag |>
+  print(n = Inf)
+
+
+# what are the top contributors 
+
+sma_skh_gam_prediction |>
+  filter(
+    !is.na(
+      sma_from_skh_gam
+    )
+  ) |>
+  select(
+    YEAR,
+    FLEET_CODE,
+    FLEET,
+    FISHERY_GROUP_CODE,
+    FISHERY_CODE,
+    FISHERY,
+    period,
+    skh_mt,
+    p_sma_skh_gam,
+    sma_from_skh_gam
+  ) |>
+  arrange(
+    desc(
+      sma_from_skh_gam
+    )
+  ) |>
+  slice_head(
+    n = 30
+  ) |>
+  print(
+    n = 30,
+    width = Inf
+  )
+
+# check support, which here I 've written as "this fishery/model class exists in the GAM."
+
+sma_shark_training_support <-
+  sma_shark_training |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    model_fishery_class
+  ) |>
+  summarise(
+
+    training_first_year =
+      min(
+        YEAR,
+        na.rm = TRUE
+      ),
+
+    training_last_year =
+      max(
+        YEAR,
+        na.rm = TRUE
+      ),
+
+    n_training =
+      n(),
+
+    n_training_fleets =
+      n_distinct(
+        FLEET_CODE
+      ),
+
+    .groups = "drop"
+  )
+
+
+sma_skh_gam_prediction <-
+  sma_skh_gam_prediction |>
+  left_join(
+    sma_shark_training_support,
+    by = c(
+      "FISHERY_GROUP_CODE",
+      "model_fishery_class"
+    )
+  ) |>
+  mutate(
+
+    gam_temporal_support = case_when(
+
+      !gam_supported ~
+        "unsupported",
+
+      is.na(training_first_year) ~
+        "unsupported",
+
+      YEAR < training_first_year ~
+        "backcast",
+
+      YEAR > training_last_year ~
+        "forward_extrapolation",
+
+      TRUE ~
+        "within_training_period"
+    )
+  )
+
+
+# summarize
+sma_skh_gam_prediction |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    gam_temporal_support
+  ) |>
+  summarise(
+
+    n_strata =
+      n(),
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    sma_from_skh_gam_mt =
+      sum(
+        sma_from_skh_gam,
+        na.rm = TRUE
+      ),
+
+    implied_p_sma =
+      sma_from_skh_gam_mt /
+        skh_mt,
+
+    first_year =
+      min(YEAR),
+
+    last_year =
+      max(YEAR),
+
+    .groups = "drop"
+  ) |>
+  arrange(
+    FISHERY_GROUP_CODE,
+    gam_temporal_support
+  ) |>
+  print(
+    n = Inf
+  )
+
+# compare the HSCR and the GAM on the matched SKH strata 
+
+hscr_gam_matched <-
+  sma_skh_gam_prediction |>
+
+  left_join(
+
+    sma_scenario_base |>
+      select(
+        YEAR,
+        FLEET_CODE,
+        FISHERY_GROUP_CODE,
+        FISHERY_CODE,
+        sma_from_skh_N1,
+        sma_from_skh_N2
+      ),
+
+    by = c(
+      "YEAR",
+      "FLEET_CODE",
+      "FISHERY_GROUP_CODE",
+      "FISHERY_CODE"
+    )
+  ) |>
+
+  mutate(
+
+    p_sma_hscr_N1 = case_when(
+      skh_mt > 0 ~
+        sma_from_skh_N1 / skh_mt,
+      TRUE ~
+        NA_real_
+    ),
+
+    p_sma_hscr_N2 = case_when(
+      skh_mt > 0 ~
+        sma_from_skh_N2 / skh_mt,
+      TRUE ~
+        NA_real_
+    )
+  )
+
+hscr_gam_matched |>
+  filter(
+    gam_supported
+  ) |>
+  summarise(
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    sma_gam_mt =
+      sum(
+        sma_from_skh_gam,
+        na.rm = TRUE
+      ),
+
+    sma_hscr_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    sma_hscr_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    p_gam =
+      sma_gam_mt / skh_mt,
+
+    p_hscr_N1 =
+      sma_hscr_N1_mt / skh_mt,
+
+    p_hscr_N2 =
+      sma_hscr_N2_mt / skh_mt
+  )
+
+
+hscr_gam_matched |>
+  filter(
+    gam_supported
+  ) |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    period,
+    gam_temporal_support
+  ) |>
+  summarise(
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    sma_gam_mt =
+      sum(
+        sma_from_skh_gam,
+        na.rm = TRUE
+      ),
+
+    sma_hscr_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    sma_hscr_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    p_gam =
+      sma_gam_mt / skh_mt,
+
+    p_hscr_N1 =
+      sma_hscr_N1_mt / skh_mt,
+
+    p_hscr_N2 =
+      sma_hscr_N2_mt / skh_mt,
+
+    .groups = "drop"
+  ) |>
+  arrange(
+    desc(skh_mt)
+  ) |>
+  print(
+    n = Inf
+  )
+
+
+sma_shark_training_support_period <-
+  sma_shark_training |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    period
+  ) |>
+  summarise(
+
+    n_strata = n(),
+
+    n_fleets =
+      n_distinct(FLEET_CODE),
+
+    n_sma_positive =
+      sum(
+        sma_mt > 0,
+        na.rm = TRUE
+      ),
+
+    proportion_sma_positive =
+      mean(
+        sma_mt > 0,
+        na.rm = TRUE
+      ),
+
+    n_sma_zero =
+      sum(
+        sma_mt == 0,
+        na.rm = TRUE
+      ),
+
+    identified_shark_mt_total =
+      sum(
+        identified_shark_mt,
+        na.rm = TRUE
+      ),
+
+    sma_mt_total =
+      sum(
+        sma_mt,
+        na.rm = TRUE
+      ),
+
+    median_p_sma =
+      median(
+        p_sma_shark,
+        na.rm = TRUE
+      ),
+
+    mean_p_sma =
+      mean(
+        p_sma_shark,
+        na.rm = TRUE
+      ),
+
+    pooled_p_sma =
+      sum(
+        sma_mt,
+        na.rm = TRUE
+      ) /
+      sum(
+        identified_shark_mt,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  )
+
+sma_shark_training_support_period |>
+  print(n = Inf)
+
+ 
+#
+#
+#
+
+sma_shark_training_support_fleet_period <-
+  sma_shark_training |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    period
+  ) |>
+  summarise(
+
+    n_strata =
+      n(),
+
+    n_fleets =
+      n_distinct(
+        FLEET_CODE
+      ),
+
+    n_fleets_sma_positive =
+      n_distinct(
+        FLEET_CODE[
+          sma_mt > 0
+        ]
+      ),
+
+    identified_shark_mt =
+      sum(
+        identified_shark_mt,
+        na.rm = TRUE
+      ),
+
+    sma_mt =
+      sum(
+        sma_mt,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+
+    fleet_support_fraction =
+      n_fleets_sma_positive /
+      n_fleets
+  )
+
+sma_shark_training_support_fleet_period |>
+  print(
+    n = Inf
+  )
+# 
+# it seems like we are back extrapolating really high values... why? 
+observed_composition_period <-
+  sma_shark_training |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    period
+  ) |>
+  summarise(
+
+    observed_identified_shark_mt =
+      sum(
+        identified_shark_mt,
+        na.rm = TRUE
+      ),
+
+    observed_sma_mt =
+      sum(
+        sma_mt,
+        na.rm = TRUE
+      ),
+
+    observed_p_sma =
+      observed_sma_mt /
+      observed_identified_shark_mt,
+
+    median_observed_p_sma =
+      median(
+        p_sma_shark,
+        na.rm = TRUE
+      ),
+
+    n_strata =
+      n(),
+
+    n_positive =
+      sum(
+        sma_mt > 0,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  )
+# Check vs the hscr
+
+hscr_gam_comparison <-
+  hscr_gam_matched |>
+
+  filter(
+    gam_supported
+  ) |>
+
+  group_by(
+    FISHERY_GROUP_CODE,
+    period,
+    gam_temporal_support
+  ) |>
+
+  summarise(
+
+    skh_mt =
+      sum(
+        skh_mt,
+        na.rm = TRUE
+      ),
+
+    sma_gam_mt =
+      sum(
+        sma_from_skh_gam,
+        na.rm = TRUE
+      ),
+
+    sma_hscr_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    sma_hscr_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    p_gam =
+      sma_gam_mt /
+      skh_mt,
+
+    p_hscr_N1 =
+      sma_hscr_N1_mt /
+      skh_mt,
+
+    p_hscr_N2 =
+      sma_hscr_N2_mt /
+      skh_mt,
+
+    .groups = "drop"
+  ) |>
+
+  left_join(
+    observed_composition_period,
+    by = c(
+      "FISHERY_GROUP_CODE",
+      "period"
+    )
+  )
+
+
+hscr_gam_comparison |>
+  select(
+    FISHERY_GROUP_CODE,
+    period,
+    gam_temporal_support,
+    skh_mt,
+    observed_p_sma,
+    median_observed_p_sma,
+    p_hscr_N1,
+    p_hscr_N2,
+    p_gam,
+    n_strata,
+    n_positive
+  ) |>
+  arrange(
+    FISHERY_GROUP_CODE,
+    period,
+    gam_temporal_support
+  ) |>
+  print(
+    n = Inf
+  )
