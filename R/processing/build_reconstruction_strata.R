@@ -534,3 +534,48 @@ bsh_state_summary <- reconstruction_strata |>
   arrange(desc(total_target_mt))
 
 bsh_state_summary
+
+
+early_ll <- reconstruction_strata |>
+  filter(
+    FISHERY_GROUP_CODE == "LL",
+    YEAR <= 1980
+  ) |>
+  arrange(
+    YEAR,
+    FLEET_CODE,
+    FISHERY_CODE
+  )
+
+early_ll_summary <- early_ll |>
+  group_by(bsh_reporting_state) |>
+  summarise(
+    n_strata = n(),
+    target_mt = sum(rc_target, na.rm = TRUE),
+    bsh_mt = sum(rc_bsh, na.rm = TRUE),
+    shark_nei_mt = sum(rc_shark_nei, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(target_mt))
+
+early_ll_summary
+
+
+early_ll_fleets <- early_ll |>
+  group_by(
+    FLEET_CODE,
+    FLEET
+  ) |>
+  summarise(
+    first_year = min(YEAR),
+    last_year = max(YEAR),
+    target_mt = sum(rc_target, na.rm = TRUE),
+    bsh_mt = sum(rc_bsh, na.rm = TRUE),
+    shark_nei_mt = sum(rc_shark_nei, na.rm = TRUE),
+    n_years = n_distinct(YEAR),
+    n_years_bsh = n_distinct(YEAR[rc_bsh > 0]),
+    .groups = "drop"
+  ) |>
+  arrange(desc(target_mt))
+
+print(early_ll_fleets, n = Inf)

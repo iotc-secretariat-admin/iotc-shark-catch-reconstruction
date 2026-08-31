@@ -53,6 +53,9 @@ excluded_generic_shark_codes <- c(
   "SHXX"    # Sharks nei other than oceanic whitetip shark and blue shark
 )
 
+ 
+
+
 
 # =============================================================================
 # 2. First make an inventory of ALL shark-related species codes
@@ -124,11 +127,23 @@ rc_shark_dat <- rc_dat |>
 # =============================================================================
 
 identified_shark_codes <- c(
-  "BSH",
-  "SMA"
-
-  # Add other species-specific shark codes after reviewing:
-  # shark_species_inventory
+  "ALV",  # Thresher
+  "BSH",  # Blue shark
+  "BTH",  # Bigeye thresher
+  "FAL",  # Silky shark
+  "LMA",  # Longfin mako
+  "MAK",  # Mako sharks
+  "OCS",  # Oceanic whitetip shark
+  "POR",  # Porbeagle
+  "PTH",  # Pelagic thresher
+  "RHN",  # Whale shark
+  "SMA",  # Shortfin mako
+  "SPK",  # Great hammerhead
+  "SPL",  # Scalloped hammerhead
+  "SPN",  # Hammerhead sharks nei
+  "SPY",  # Hammerheads etc. nei
+  "SPZ",  # Smooth hammerhead
+  "THR"   # Thresher sharks nei
 )
 
 
@@ -149,26 +164,22 @@ shark_composition_strata <- rc_shark_dat |>
   ) |>
   summarise(
 
-    # Species-specific BSH
-    bsh_mt = sum(
+    reported_bsh_mt = sum(
       CATCH[SPECIES_CODE == "BSH"],
       na.rm = TRUE
     ),
 
-    # Species-specific SMA
-    sma_mt = sum(
+    reported_sma_mt = sum(
       CATCH[SPECIES_CODE == "SMA"],
       na.rm = TRUE
     ),
 
-    # All identified shark species
     identified_shark_mt = sum(
       CATCH[SPECIES_CODE %in% identified_shark_codes],
       na.rm = TRUE
     ),
 
-    # Generic sharks potentially requiring disaggregation
-    shark_nei_mt = sum(
+    generic_shark_mt = sum(
       CATCH[SPECIES_CODE %in% generic_shark_codes],
       na.rm = TRUE
     ),
@@ -177,16 +188,16 @@ shark_composition_strata <- rc_shark_dat |>
   ) |>
   mutate(
 
-    # BSH fraction among identified shark catch
-    p_bsh = if_else(
+    p_bsh_observed = if_else(
       identified_shark_mt > 0,
-      bsh_mt / identified_shark_mt,
+      reported_bsh_mt / identified_shark_mt,
       NA_real_
-    ),
-
-    p_sma = if_else(
+    ), 
+ 
+ 
+    p_sma_observed = if_else(
       identified_shark_mt > 0,
-      sma_mt / identified_shark_mt,
+      reported_sma_mt / identified_shark_mt,
       NA_real_
     )
   )
@@ -198,7 +209,7 @@ shark_composition_strata <- rc_shark_dat |>
 bsh_comp_donors <- shark_composition_strata |>
   filter(
     identified_shark_mt > 0,
-    !is.na(p_bsh)
+    !is.na(p_bsh_observed)
   )
 
 
@@ -217,28 +228,422 @@ comp_L1 <- bsh_comp_donors |>
   ) |>
   summarise(
 
-    donor_n = n(),
+    n_L1 = n(),
+    n_years_L1 = n_distinct(YEAR),
 
-    n_donor_years =
-      n_distinct(YEAR),
+    donor_identified_shark_mt_L1 =
+      sum(identified_shark_mt, na.rm = TRUE),
 
-    identified_shark_mt =
-      sum(identified_shark_mt),
+    donor_bsh_mt_L1 =
+      sum(reported_bsh_mt, na.rm = TRUE),
 
-    bsh_mt =
-      sum(bsh_mt),
-
-    # pooled composition
-    p_bsh =
-      bsh_mt / identified_shark_mt,
+    p_bsh_L1 =
+      donor_bsh_mt_L1 /
+      donor_identified_shark_mt_L1,
 
     .groups = "drop"
   ) |>
   filter(
-    donor_n >= 2,
-    identified_shark_mt > 0
-  ) |>
-  rename(
-    p_bsh_L1 = p_bsh,
-    n_L1 = donor_n
+    n_L1 >= 2,
+    donor_identified_shark_mt_L1 > 0
   )
+
+# =============================================================================
+# 8. Level 2:
+#    Fleet x Fishery Group x Period
+# =============================================================================
+comp_L2 <- bsh_comp_donors |>
+  group_by(
+    FLEET_CODE,
+    FISHERY_GROUP_CODE,
+    period
+  ) |>
+  summarise(
+
+    n_L2 = n(),
+
+    donor_identified_shark_mt_L2 =
+      sum(identified_shark_mt, na.rm = TRUE),
+
+    donor_bsh_mt_L2 =
+      sum(reported_bsh_mt, na.rm = TRUE),
+
+    p_bsh_L2 =
+      donor_bsh_mt_L2 /
+      donor_identified_shark_mt_L2,
+
+    .groups = "drop"
+  ) |>
+  filter(
+    n_L2 >= 2,
+    donor_identified_shark_mt_L2 > 0
+  )
+
+# =============================================================================
+# 9. Level 3:
+#    Fishery x Period
+# =============================================================================
+
+comp_L3 <- bsh_comp_donors |>
+  group_by(
+    FISHERY_CODE,
+    period
+  ) |>
+  summarise(
+
+    n_L3 = n(),
+    n_fleets_L3 = n_distinct(FLEET_CODE),
+
+    donor_identified_shark_mt_L3 =
+      sum(identified_shark_mt, na.rm = TRUE),
+
+    donor_bsh_mt_L3 =
+      sum(reported_bsh_mt, na.rm = TRUE),
+
+    p_bsh_L3 =
+      donor_bsh_mt_L3 /
+      donor_identified_shark_mt_L3,
+
+    .groups = "drop"
+  ) |>
+  filter(
+    n_L3 >= 3,
+    donor_identified_shark_mt_L3 > 0
+  )
+
+
+# =============================================================================
+# 10. Level 4:
+#     Fishery Group x Period
+# =============================================================================
+
+comp_L4 <- bsh_comp_donors |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    period
+  ) |>
+  summarise(
+
+    n_L4 = n(),
+    n_fleets_L4 = n_distinct(FLEET_CODE),
+
+    donor_identified_shark_mt_L4 =
+      sum(identified_shark_mt, na.rm = TRUE),
+
+    donor_bsh_mt_L4 =
+      sum(reported_bsh_mt, na.rm = TRUE),
+
+    p_bsh_L4 =
+      donor_bsh_mt_L4 /
+      donor_identified_shark_mt_L4,
+
+    .groups = "drop"
+  ) |>
+  filter(
+    donor_identified_shark_mt_L4 > 0
+  )
+
+# =============================================================================
+# 11. Candidate generic-shark strata
+# =============================================================================
+
+bsh_nei_candidates <- shark_composition_strata |>
+  filter(generic_shark_mt > 0) |>
+  left_join(
+    comp_L1,
+    by = c(
+      "FLEET_CODE",
+      "FISHERY_CODE",
+      "period"
+    )
+  ) |>
+  left_join(
+    comp_L2,
+    by = c(
+      "FLEET_CODE",
+      "FISHERY_GROUP_CODE",
+      "period"
+    )
+  ) |>
+  left_join(
+    comp_L3,
+    by = c(
+      "FISHERY_CODE",
+      "period"
+    )
+  ) |>
+  left_join(
+    comp_L4,
+    by = c(
+      "FISHERY_GROUP_CODE",
+      "period"
+    )
+  ) |>
+  mutate(
+
+    composition_source = case_when(
+      !is.na(p_bsh_L1) ~ "fleet_fishery_period",
+      !is.na(p_bsh_L2) ~ "fleet_group_period",
+      !is.na(p_bsh_L3) ~ "fishery_period",
+      !is.na(p_bsh_L4) ~ "fishery_group_period",
+      TRUE ~ "no_donor"
+    ),
+
+    selected_p_bsh = coalesce(
+      p_bsh_L1,
+      p_bsh_L2,
+      p_bsh_L3,
+      p_bsh_L4
+    ),
+
+    estimated_bsh_from_nei = if_else(
+      !is.na(selected_p_bsh),
+      generic_shark_mt * selected_p_bsh,
+      NA_real_
+    ),
+
+    bsh_species_adjusted =
+      reported_bsh_mt +
+      coalesce(estimated_bsh_from_nei, 0)
+  )
+
+
+# =============================================================================
+# 12. Attach BSH composition estimates
+# =============================================================================
+
+bsh_nei_candidates <- bsh_nei_candidates |>
+
+  left_join(
+    comp_L1,
+    by = c(
+      "FLEET_CODE",
+      "FISHERY_CODE",
+      "period"
+    )
+  ) |>
+
+  left_join(
+    comp_L2,
+    by = c(
+      "FLEET_CODE",
+      "FISHERY_GROUP_CODE",
+      "period"
+    )
+  ) |>
+
+  left_join(
+    comp_L3,
+    by = c(
+      "FISHERY_CODE",
+      "period"
+    )
+  ) |>
+
+  left_join(
+    comp_L4,
+    by = c(
+      "FISHERY_GROUP_CODE",
+      "period"
+    )
+  )
+# =============================================================================
+# 13. Select composition donor
+# =============================================================================
+
+bsh_nei_candidates <- bsh_nei_candidates |>
+  mutate(
+
+    composition_source = case_when(
+
+      !is.na(p_bsh_L1) ~
+        "fleet_fishery_period",
+
+      !is.na(p_bsh_L2) ~
+        "fleet_group_period",
+
+      !is.na(p_bsh_L3) ~
+        "fishery_period",
+
+      !is.na(p_bsh_L4) ~
+        "fishery_group_period",
+
+      TRUE ~
+        "no_donor"
+    ),
+
+    selected_p_bsh = coalesce(
+      p_bsh_L1,
+      p_bsh_L2,
+      p_bsh_L3,
+      p_bsh_L4
+    ),
+
+    # Amount of generic shark catch assigned to BSH
+    bsh_from_nei = if_else(
+      !is.na(selected_p_bsh),
+      shark_nei_mt * selected_p_bsh,
+      NA_real_
+    )
+  )
+
+
+# =============================================================================
+# 14. Species-adjusted BSH
+#
+# This is NOT yet the complete reconstruction.
+#
+# It contains:
+#
+#     directly reported BSH
+#           +
+#     BSH allocated from generic shark catch
+#
+# No catch has yet been added for complete non-reporting.
+# =============================================================================
+
+bsh_nei_candidates <- bsh_nei_candidates |>
+  mutate(
+    bsh_species_adjusted =
+      bsh_mt +
+      coalesce(bsh_from_nei, 0)
+  )
+
+
+# =============================================================================
+# 15. Early longline generic-shark reconstruction
+# =============================================================================
+
+early_ll_nei_summary <- bsh_nei_candidates |>
+  filter(
+    FISHERY_GROUP_CODE == "LL",
+    YEAR <= 1980
+  ) |>
+  group_by(
+    FLEET_CODE,
+    FLEET
+  ) |>
+  summarise(
+    first_year = min(YEAR),
+    last_year = max(YEAR),
+
+    reported_bsh_mt =
+      sum(reported_bsh_mt, na.rm = TRUE),
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    estimated_bsh_from_nei =
+      sum(estimated_bsh_from_nei, na.rm = TRUE),
+
+    .groups = "drop"
+  ) |>
+  arrange(desc(generic_shark_mt))
+
+print(early_ll_nei_summary, n = Inf)
+
+# Which donor source was used for the early generic shark catch?
+
+bsh_nei_candidates |>
+  filter(
+    FISHERY_GROUP_CODE == "LL",
+    YEAR <= 1980
+  ) |>
+  count(
+    FLEET_CODE,
+    FLEET,
+    composition_source,
+    sort = TRUE
+  ) |>
+  print(n = Inf)
+
+#
+# =============================================================================
+# Japanese early longline shark species composition
+# =============================================================================
+
+jpn_early_shark_comp <- rc_dat |>
+  filter(
+    FLEET_CODE == "JPN",
+    FISHERY_GROUP_CODE == "LL",
+    YEAR >= 1964,
+    YEAR <= 1980,
+    SPECIES_CODE %in% identified_shark_codes
+  ) |>
+  group_by(
+    SPECIES_CODE,
+    SPECIES
+  ) |>
+  summarise(
+    catch_mt = sum(CATCH, na.rm = TRUE),
+    n_years = n_distinct(YEAR),
+    first_year = min(YEAR),
+    last_year = max(YEAR),
+    .groups = "drop"
+  ) |>
+  mutate(
+    prop_identified_sharks =
+      catch_mt / sum(catch_mt)
+  ) |>
+  arrange(desc(catch_mt))
+
+print(jpn_early_shark_comp, n = Inf)
+
+
+jpn_early_shark_comp_year <- rc_dat |>
+  filter(
+    FLEET_CODE == "JPN",
+    FISHERY_GROUP_CODE == "LL",
+    YEAR >= 1964,
+    YEAR <= 1980,
+    SPECIES_CODE %in% identified_shark_codes
+  ) |>
+  group_by(
+    YEAR,
+    SPECIES_CODE,
+    SPECIES
+  ) |>
+  summarise(
+    catch_mt = sum(CATCH, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(YEAR) |>
+  mutate(
+    annual_identified_shark_mt = sum(catch_mt),
+    proportion = catch_mt / annual_identified_shark_mt
+  ) |>
+  ungroup()
+
+
+jpn_early_bsh_prop <- jpn_early_shark_comp_year |>
+  filter(SPECIES_CODE == "BSH") |>
+  select(
+    YEAR,
+    bsh_mt = catch_mt,
+    identified_shark_mt = annual_identified_shark_mt,
+    p_bsh = proportion
+  )
+
+print(jpn_early_bsh_prop, n = Inf)
+
+
+library(ggplot2)
+
+ggplot(
+  jpn_early_bsh_prop,
+  aes(YEAR, p_bsh)
+) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(
+    limits = c(0, 1)
+  ) +
+  labs(
+    x = "Year",
+    y = "BSH proportion of identified shark catch",
+    title = "Blue shark proportion of identified shark catch",
+    subtitle = "Japan longline, 1964–1980"
+  ) +
+  theme_bw()
+
+

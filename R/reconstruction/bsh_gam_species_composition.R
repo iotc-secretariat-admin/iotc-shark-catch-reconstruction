@@ -1316,7 +1316,7 @@ hscr_comparison_dat <- nei_candidates |>
     FISHERY_CODE = as.character(FISHERY_CODE)
   )
 
-gam_hscr_comparison <- gam_comparison_dat |>
+bsh_gam_hscr_comparison <- gam_comparison_dat |>
   select(
     all_of(comparison_keys),
 
@@ -1411,14 +1411,122 @@ gam_nei_predictions |>
   ) |>
   print(n = Inf)
 
+# =============================================================================
+# Annual BSH HSCR and GAM sensitivity comparison
+#
+# HSCR:
+#   canonical annual scenarios from nei_scenario_annual
+#
+# GAM:
+#   annual predictions aggregated from gam_hscr_comparison
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1. Canonical annual HSCR series
+# -----------------------------------------------------------------------------
+
+bsh_hscr_annual <-
+  nei_scenario_annual |>
+
+  transmute(
+
+    YEAR,
+
+    generic_shark_mt,
+
+    bsh_HSCR_N1_mt =
+      bsh_N1_mt,
+
+    bsh_HSCR_N2_mt =
+      bsh_N2_mt
+  )
+
+
+# -----------------------------------------------------------------------------
+# 2. Annual GAM sensitivity series
+# -----------------------------------------------------------------------------
+
+bsh_gam_annual <-
+  bsh_gam_hscr_comparison |>
+
+  group_by(
+    YEAR
+  ) |>
+
+  summarise(
+
+    bsh_GAM_mt =
+      sum(
+        bsh_from_nei_gam,
+        na.rm = TRUE
+      ),
+
+    bsh_GAM_lower_mt =
+      sum(
+        bsh_from_nei_gam_lower,
+        na.rm = TRUE
+      ),
+
+    bsh_GAM_upper_mt =
+      sum(
+        bsh_from_nei_gam_upper,
+        na.rm = TRUE
+      ),
+
+    .groups = "drop"
+  )
+
+
+# -----------------------------------------------------------------------------
+# 3. Combine HSCR and GAM annual series
+# -----------------------------------------------------------------------------
+
+bsh_skh_method_annual <-
+  bsh_hscr_annual |>
+
+  left_join(
+    bsh_gam_annual,
+    by = "YEAR"
+  ) |>
+
+  mutate(
+
+    hscr_lower_mt =
+      pmin(
+        bsh_HSCR_N1_mt,
+        bsh_HSCR_N2_mt
+      ),
+
+    hscr_upper_mt =
+      pmax(
+        bsh_HSCR_N1_mt,
+        bsh_HSCR_N2_mt
+      ),
+
+    hscr_midpoint_mt =
+      (
+        bsh_HSCR_N1_mt +
+        bsh_HSCR_N2_mt
+      ) / 2,
+
+    gam_minus_N1_mt =
+      bsh_GAM_mt -
+      bsh_HSCR_N1_mt,
+
+    gam_minus_N2_mt =
+      bsh_GAM_mt -
+      bsh_HSCR_N2_mt
+  )
+
 
 # =============================================================================
 # 19. Overall GAM vs HSCR comparison
 # =============================================================================
 
-gam_hscr_summary <- gam_hscr_comparison |>
+bsh_gam_hscr_summary <-
+  bsh_gam_hscr_comparison |>
   summarise(
-
     generic_shark_mt =
       sum(generic_shark_mt, na.rm = TRUE),
 
@@ -1429,8 +1537,9 @@ gam_hscr_summary <- gam_hscr_comparison |>
       sum(bsh_from_nei_N2, na.rm = TRUE),
 
     bsh_GAM_mt =
-      sum(bsh_from_nei_gam, na.rm = TRUE),
-
+      sum(bsh_from_nei_gam, na.rm = TRUE)
+  ) |>
+  mutate(
     difference_GAM_N1_mt =
       bsh_GAM_mt - bsh_HSCR_N1_mt,
 
@@ -1438,11 +1547,12 @@ gam_hscr_summary <- gam_hscr_comparison |>
       bsh_GAM_mt - bsh_HSCR_N2_mt
   )
 
+glimpse(bsh_gam_hscr_summary)
 # =============================================================================
 # 20. GAM vs HSCR by fishery group
 # =============================================================================
 
-gam_hscr_by_group <- gam_hscr_comparison |>
+bsh_gam_hscr_by_group <- bsh_gam_hscr_comparison |>
   group_by(
     FISHERY_GROUP_CODE
   ) |>
@@ -1478,7 +1588,7 @@ gam_hscr_by_group <- gam_hscr_comparison |>
 # 21. GAM extrapolation support
 # =============================================================================
 
-gam_extrapolation_summary <- gam_hscr_comparison |>
+gam_extrapolation_summary <- bsh_gam_hscr_comparison |>
   group_by(
     FISHERY_GROUP_CODE,
     gam_temporal_support
@@ -1507,10 +1617,10 @@ gam_extrapolation_summary <- gam_hscr_comparison |>
   )
 
 #  fleet vs temporal extrapolation 
-glimpse(gam_hscr_comparison)
+glimpse(bsh_gam_hscr_comparison)
 
 
-gam_support_summary <- gam_hscr_comparison |>
+gam_support_summary <- bsh_gam_hscr_comparison |>
   mutate(
     support_class = case_when(
       gam_temporal_support == "backcast" &
@@ -1562,8 +1672,8 @@ print(gam_support_summary, n = Inf)
 
 # output
 print(gam_extrapolation_summary, n = Inf)
-print(gam_hscr_by_group, n = Inf)
-print(gam_hscr_summary)
+print(bsh_gam_hscr_by_group, n = Inf)
+print(bsh_gam_hscr_summary)
 
 
 # 
@@ -2058,74 +2168,16 @@ gam_coverage_summary
 gam_cv_final
 gam_cv_final_by_group
 gam_coverage_summary
-gam_hscr_by_group
+bsh_gam_hscr_by_group
 
 # some comparison plotting 
 
 # =============================================================================
-# BSH HSCR and GAM sensitivity totals
-# =============================================================================
-bsh_skh_method_summary <-
-  gam_hscr_summary |>
-  summarise(
-
-    skh_mt =
-      sum(
-        skh_mt,
-        na.rm = TRUE
-      ),
-
-    hscr_N1_mt =
-      sum(
-        bsh_from_skh_N1,
-        na.rm = TRUE
-      ),
-
-    hscr_N2_mt =
-      sum(
-        bsh_from_skh_N2,
-        na.rm = TRUE
-      ),
-
-    gam_sensitivity_mt =
-      sum(
-        bsh_from_skh_gam_sensitivity,
-        na.rm = TRUE
-      )
-  ) |>
-
-  mutate(
-
-    hscr_midpoint_mt =
-      (
-        hscr_N1_mt +
-        hscr_N2_mt
-      ) / 2,
-
-    gam_minus_N1_mt =
-      gam_sensitivity_mt -
-      hscr_N1_mt,
-
-    gam_minus_N2_mt =
-      gam_sensitivity_mt -
-      hscr_N2_mt
-  )
-
-
-print(
-  bsh_skh_method_summary
-)
-write_csv(
-  bsh_skh_method_summary,
-  "outputs/bsh/gam/bsh_skh_hscr_gam_summary.csv"
-)
-
-# =============================================================================
-# Annual BSH HSCR and GAM sensitivity comparison
+# Annual BSH HSCR and GAM comparison
 # =============================================================================
 
-bsh_skh_annual_comparison <-
-  bsh_skh_gam_prediction |>
+bsh_skh_method_annual <-
+  bsh_gam_hscr_comparison |>
 
   group_by(
     YEAR
@@ -2133,27 +2185,39 @@ bsh_skh_annual_comparison <-
 
   summarise(
 
-    skh_mt =
+    generic_shark_mt =
       sum(
-        skh_mt,
+        generic_shark_mt,
         na.rm = TRUE
       ),
 
-    hscr_N1_mt =
+    bsh_HSCR_N1_mt =
       sum(
-        bsh_from_skh_N1,
+        bsh_from_nei_N1,
         na.rm = TRUE
       ),
 
-    hscr_N2_mt =
+    bsh_HSCR_N2_mt =
       sum(
-        bsh_from_skh_N2,
+        bsh_from_nei_N2,
         na.rm = TRUE
       ),
 
-    gam_sensitivity_mt =
+    bsh_GAM_mt =
       sum(
-        bsh_from_skh_gam_sensitivity,
+        bsh_from_nei_gam,
+        na.rm = TRUE
+      ),
+
+    bsh_GAM_lower_mt =
+      sum(
+        bsh_from_nei_gam_lower,
+        na.rm = TRUE
+      ),
+
+    bsh_GAM_upper_mt =
+      sum(
+        bsh_from_nei_gam_upper,
         na.rm = TRUE
       ),
 
@@ -2164,27 +2228,27 @@ bsh_skh_annual_comparison <-
 
     hscr_lower_mt =
       pmin(
-        hscr_N1_mt,
-        hscr_N2_mt
+        bsh_HSCR_N1_mt,
+        bsh_HSCR_N2_mt
       ),
 
     hscr_upper_mt =
       pmax(
-        hscr_N1_mt,
-        hscr_N2_mt
+        bsh_HSCR_N1_mt,
+        bsh_HSCR_N2_mt
       ),
 
     hscr_midpoint_mt =
       (
-        hscr_N1_mt +
-        hscr_N2_mt
+        bsh_HSCR_N1_mt +
+        bsh_HSCR_N2_mt
       ) / 2
   )
 
 #plot
 p_bsh_skh_annual_comparison <-
   ggplot(
-    bsh_skh_annual_comparison,
+    bsh_skh_method_annual,
     aes(
       x = YEAR
     )
@@ -2207,13 +2271,13 @@ p_bsh_skh_annual_comparison <-
     linewidth = 0.9
   ) +
 
-  geom_line(
-    aes(
-      y = gam_sensitivity_mt,
-      colour = "GAM sensitivity"
-    ),
-    linewidth = 0.9
-  ) +
+geom_line(
+  aes(
+    y = bsh_GAM_mt,
+    colour = "GAM sensitivity"
+  ),
+  linewidth = 0.9
+) +
 
   scale_colour_viridis_d(
     option = "D",
@@ -2368,7 +2432,7 @@ dir.create(
 # =============================================================================
 
 write_csv(
-  gam_hscr_summary,
+  bsh_gam_hscr_summary,
   file.path(
     bsh_gam_output_dir,
     "bsh_skh_hscr_gam_summary.csv"
@@ -2376,7 +2440,7 @@ write_csv(
 )
 
 write_csv(
-  gam_hscr_by_group,
+  bsh_gam_hscr_by_group,
   file.path(
     bsh_gam_output_dir,
     "bsh_skh_hscr_gam_by_group.csv"
@@ -2400,7 +2464,7 @@ write_csv(
 )
 
 write_csv(
-  gam_hscr_comparison,
+  bsh_gam_hscr_comparison,
   file.path(
     bsh_gam_output_dir,
     "bsh_skh_hscr_gam_comparison.csv"
@@ -2414,4 +2478,357 @@ write_csv(
 
 
 
+# =============================================================================
+# Identify canonical BSH HSCR annual source
+# =============================================================================
 
+candidate_objects <-
+  c(
+    "bsh_nei_candidates",
+    "bsh_nei_component",
+    "nei_scenario_annual",
+    "nei_scenario_by_group",
+    "nei_scenario_summary",
+    "hscr_comparison_dat",
+    "hscr_gam_comparison",
+    "gam_hscr_comparison"
+  )
+
+for (obj in candidate_objects) {
+
+  cat(
+    "\n\n========================================\n",
+    obj,
+    "\n========================================\n"
+  )
+
+  x <- get(obj)
+
+  print(
+    names(x)
+  )
+}
+
+
+# =============================================================================
+# Consistency checks against canonical totals
+# =============================================================================
+
+bsh_skh_method_total_check <-
+  bsh_skh_method_annual |>
+
+  summarise(
+
+    generic_shark_mt =
+      sum(
+        generic_shark_mt,
+        na.rm = TRUE
+      ),
+
+    bsh_HSCR_N1_mt =
+      sum(
+        bsh_HSCR_N1_mt,
+        na.rm = TRUE
+      ),
+
+    bsh_HSCR_N2_mt =
+      sum(
+        bsh_HSCR_N2_mt,
+        na.rm = TRUE
+      ),
+
+    bsh_GAM_mt =
+      sum(
+        bsh_GAM_mt,
+        na.rm = TRUE
+      )
+  )
+
+
+print(
+  bsh_skh_method_total_check
+)
+
+
+
+
+
+# check 
+# helper
+check_hscr_totals <- function(dat) {
+
+  nm <- names(dat)
+
+  cat("\nColumns containing N1/N2:\n")
+  print(
+    nm[grepl("N1|N2", nm)]
+  )
+
+  invisible(dat)
+}
+
+check_hscr_totals(hscr_gam_matched)
+check_hscr_totals(gam_nei_supported)
+check_hscr_totals(gam_nei_unsupported)
+check_hscr_totals(supported_rows)
+
+
+
+# ============================================================
+# BSH-only object audit
+# ============================================================
+
+bsh_objects <- c(
+  "bsh_nei_candidates",
+  "bsh_nei_component",
+  "nei_scenario_annual",
+  "nei_scenario_by_group",
+  "nei_scenario_summary",
+  "hscr_comparison_dat",
+  "gam_hscr_comparison",
+  "bsh_gam_hscr_summary",
+  "bsh_gam_hscr_by_group",
+  "gam_nei_supported",
+  "gam_nei_unsupported"
+)
+
+for (obj in bsh_objects) {
+
+  cat(
+    "\n\n========================================\n",
+    obj,
+    "\n========================================\n"
+  )
+
+  x <- get(obj)
+
+  cat("Class:\n")
+  print(class(x))
+
+  cat("\nDimensions:\n")
+  if (is.data.frame(x)) {
+    print(dim(x))
+  }
+
+  cat("\nRelevant columns:\n")
+  if (is.data.frame(x)) {
+    print(
+      names(x)[
+        grepl(
+          "bsh|N1|N2|generic|gam|hscr",
+          names(x),
+          ignore.case = TRUE
+        )
+      ]
+    )
+  }
+}
+
+
+#  these are the bsh objects
+# # Full HSCR reconstruction
+# hscr_comparison_dat
+# nei_scenario_annual
+# nei_scenario_by_group
+# nei_scenario_summary
+
+# # GAM reconstruction / comparison
+# gam_nei_supported
+# gam_nei_unsupported
+# gam_hscr_comparison
+# gam_hscr_summary
+# gam_hscr_by_group
+
+# ============================================================
+# Identify HSCR strata absent from GAM comparison
+# ============================================================
+
+bsh_missing_from_gam <-
+  hscr_comparison_dat |>
+  anti_join(
+    gam_hscr_comparison,
+    by = c(
+      "YEAR",
+      "FLEET_CODE",
+      "FISHERY_GROUP_CODE",
+      "FISHERY_CODE"
+    )
+  )
+
+bsh_missing_from_gam |>
+  select(
+    YEAR,
+    FLEET_CODE,
+    FISHERY_GROUP_CODE,
+    FISHERY_CODE,
+    generic_shark_mt,
+    p_bsh_N1,
+    p_bsh_N2,
+    bsh_from_nei_N1,
+    bsh_from_nei_N2,
+    nei_N1_source,
+    nei_N2_source
+  )
+
+
+bsh_hscr_full <-
+  hscr_comparison_dat |>
+  summarise(
+    N1 =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+    N2 =
+      sum(bsh_from_nei_N2, na.rm = TRUE)
+  )
+
+bsh_hscr_gam_subset <-
+  gam_hscr_comparison |>
+  summarise(
+    N1 =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+    N2 =
+      sum(bsh_from_nei_N2, na.rm = TRUE)
+  )
+
+bsh_hscr_full
+bsh_hscr_gam_subset
+
+
+
+# =============================================================================
+# Compare HSCR values before and after construction of gam_hscr_comparison
+# =============================================================================
+
+bsh_hscr_value_check <-
+  hscr_comparison_dat |>
+  select(
+    YEAR,
+    FLEET_CODE,
+    FISHERY_GROUP_CODE,
+    FISHERY_CODE,
+    generic_shark_mt,
+    p_bsh_N1_original = p_bsh_N1,
+    p_bsh_N2_original = p_bsh_N2,
+    bsh_N1_original = bsh_from_nei_N1,
+    bsh_N2_original = bsh_from_nei_N2
+  ) |>
+
+  inner_join(
+    gam_hscr_comparison |>
+      select(
+        YEAR,
+        FLEET_CODE,
+        FISHERY_GROUP_CODE,
+        FISHERY_CODE,
+        p_bsh_N1_gam_object = p_bsh_N1,
+        p_bsh_N2_gam_object = p_bsh_N2,
+        bsh_N1_gam_object = bsh_from_nei_N1,
+        bsh_N2_gam_object = bsh_from_nei_N2
+      ),
+    by = c(
+      "YEAR",
+      "FLEET_CODE",
+      "FISHERY_GROUP_CODE",
+      "FISHERY_CODE"
+    )
+  ) |>
+
+  mutate(
+    diff_p_N1 =
+      p_bsh_N1_gam_object - p_bsh_N1_original,
+
+    diff_p_N2 =
+      p_bsh_N2_gam_object - p_bsh_N2_original,
+
+    diff_mt_N1 =
+      bsh_N1_gam_object - bsh_N1_original,
+
+    diff_mt_N2 =
+      bsh_N2_gam_object - bsh_N2_original
+  )
+
+
+bsh_hscr_value_check |>
+  summarise(
+    n = n(),
+
+    original_N1 =
+      sum(bsh_N1_original, na.rm = TRUE),
+
+    gam_object_N1 =
+      sum(bsh_N1_gam_object, na.rm = TRUE),
+
+    difference_N1 =
+      sum(diff_mt_N1, na.rm = TRUE),
+
+    original_N2 =
+      sum(bsh_N2_original, na.rm = TRUE),
+
+    gam_object_N2 =
+      sum(bsh_N2_gam_object, na.rm = TRUE),
+
+    difference_N2 =
+      sum(diff_mt_N2, na.rm = TRUE),
+
+    n_different_N1 =
+      sum(
+        abs(diff_mt_N1) > 1e-8,
+        na.rm = TRUE
+      ),
+
+    n_different_N2 =
+      sum(
+        abs(diff_mt_N2) > 1e-8,
+        na.rm = TRUE
+      )
+  )
+
+
+bsh_hscr_value_check |>
+  filter(
+    abs(diff_mt_N1) > 1e-8 |
+      abs(diff_mt_N2) > 1e-8
+  ) |>
+  arrange(
+    desc(
+      pmax(
+        abs(diff_mt_N1),
+        abs(diff_mt_N2),
+        na.rm = TRUE
+      )
+    )
+  ) |>
+  select(
+    YEAR,
+    FLEET_CODE,
+    FISHERY_GROUP_CODE,
+    FISHERY_CODE,
+    generic_shark_mt,
+    p_bsh_N1_original,
+    p_bsh_N1_gam_object,
+    p_bsh_N2_original,
+    p_bsh_N2_gam_object,
+    bsh_N1_original,
+    bsh_N1_gam_object,
+    diff_mt_N1,
+    bsh_N2_original,
+    bsh_N2_gam_object,
+    diff_mt_N2
+  ) |>
+  print(n = 30)
+
+
+# so where is the differnce 
+gam_hscr_comparison |>
+  summarise(
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    bsh_HSCR_N1_mt =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    bsh_HSCR_N2_mt =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    bsh_GAM_mt =
+      sum(bsh_from_nei_gam, na.rm = TRUE)
+  )

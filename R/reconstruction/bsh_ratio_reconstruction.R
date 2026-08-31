@@ -322,38 +322,18 @@ summarise(
   )
 
 
+
+ 
 # -----------------------------------------------------------------------------
 # 7. Level 4: All longline within period
 # -----------------------------------------------------------------------------
 
 ratio_L4 <- bsh_donors |>
   group_by(period) |>
-  # summarise(
-  #   donor_n = n(),
-  #   n_donor_fleets = n_distinct(FLEET_CODE),
-
-  #   donor_target_mt = sum(
-  #     rc_target,
-  #     na.rm = TRUE
-  #   ),
-
-  #   donor_bsh_mt = sum(
-  #     rc_bsh,
-  #     na.rm = TRUE
-  #   ),
-
-  #   donor_ratio =
-  #     donor_bsh_mt / donor_target_mt,
-
-  #   .groups = "drop"
-  # ) |>
-  # rename(
-  #   ratio_L4 = donor_ratio,
-  #   n_L4 = donor_n,
-  #   n_fleets_L4 = n_donor_fleets
-  # )
   summarise(
     donor_n = n(),
+    n_donor_fleets = n_distinct(FLEET_CODE),
+
     donor_first_year = min(YEAR),
     donor_last_year = max(YEAR),
 
@@ -375,10 +355,39 @@ ratio_L4 <- bsh_donors |>
   rename(
     ratio_L4 = donor_ratio,
     n_L4 = donor_n,
+    n_fleets_L4 = n_donor_fleets,
     donor_first_year_L4 = donor_first_year,
     donor_last_year_L4 = donor_last_year
   )
 
+# -----------------------------------------------------------------------------
+#rename
+# -----------------------------------------------------------------------------
+ratio_L1 <- ratio_L1 |>
+  rename(
+    donor_target_mt_L1 = donor_target_mt,
+    donor_bsh_mt_L1 = donor_bsh_mt
+  )
+
+ratio_L2 <- ratio_L2 |>
+  rename(
+    donor_target_mt_L2 = donor_target_mt,
+    donor_bsh_mt_L2 = donor_bsh_mt
+  )
+
+ratio_L3 <- ratio_L3 |>
+  rename(
+    donor_target_mt_L3 = donor_target_mt,
+    donor_bsh_mt_L3 = donor_bsh_mt
+  )
+
+ratio_L4 <- ratio_L4 |>
+  rename(
+    donor_target_mt_L4 = donor_target_mt,
+    donor_bsh_mt_L4 = donor_bsh_mt
+  )
+
+glimpse(ratio_L4)
 # -----------------------------------------------------------------------------
 # 8. Candidate longline strata
 # -----------------------------------------------------------------------------
@@ -396,47 +405,56 @@ bsh_ratio_candidates <- bsh_ratio_dat |>
 # 9. Attach donor ratios
 # -----------------------------------------------------------------------------
 
-ratio_L1 <- bsh_donors |>
-  group_by(
-    FLEET_CODE,
-    FISHERY_CODE,
-    period
+bsh_ratio_candidates <- bsh_ratio_candidates |>
+
+  # Level 1: same fleet x fishery x period
+  left_join(
+    ratio_L1,
+    by = c(
+      "FLEET_CODE",
+      "FISHERY_CODE",
+      "period"
+    )
   ) |>
-  summarise(
-    donor_n = n(),
-    donor_first_year = min(YEAR),
-    donor_last_year = max(YEAR),
 
-    donor_target_mt =
-      sum(rc_target, na.rm = TRUE),
-
-    donor_bsh_mt =
-      sum(rc_bsh, na.rm = TRUE),
-
-    donor_ratio =
-      donor_bsh_mt / donor_target_mt,
-
-    .groups = "drop"
+  # Level 2: same fleet x broad longline group x period
+  left_join(
+    ratio_L2,
+    by = c(
+      "FLEET_CODE",
+      "FISHERY_GROUP_CODE",
+      "period"
+    )
   ) |>
-  filter(
-    donor_n >= 2,
-    donor_target_mt > 0
+
+  # Level 3: same fishery x period
+  left_join(
+    ratio_L3,
+    by = c(
+      "FISHERY_CODE",
+      "period"
+    )
   ) |>
-  rename(
-    ratio_L1 = donor_ratio,
-    n_L1 = donor_n,
-    donor_first_year_L1 = donor_first_year,
-    donor_last_year_L1 = donor_last_year
+
+  # Level 4: all longline x period
+  left_join(
+    ratio_L4,
+    by = "period"
   )
 
 # -----------------------------------------------------------------------------
-# 10. Select donor level
+# 10. Select donor level and characterize evidential support
 # -----------------------------------------------------------------------------
- 
+
 bsh_ratio_candidates <- bsh_ratio_candidates |>
   mutate(
 
+    # -------------------------------------------------------------------------
+    # Select most specific available donor ratio
+    # -------------------------------------------------------------------------
+
     ratio_source = case_when(
+
       !is.na(ratio_L1) ~
         "fleet_fishery_period",
 
@@ -453,6 +471,7 @@ bsh_ratio_candidates <- bsh_ratio_candidates |>
         "no_donor"
     ),
 
+
     selected_ratio = coalesce(
       ratio_L1,
       ratio_L2,
@@ -460,9 +479,10 @@ bsh_ratio_candidates <- bsh_ratio_candidates |>
       ratio_L4
     ),
 
-    # -------------------------------------------------------------
-    # Evidential support for the selected ratio
-    # -------------------------------------------------------------
+
+    # -------------------------------------------------------------------------
+    # Evidential support
+    # -------------------------------------------------------------------------
 
     ratio_support = case_when(
 
@@ -495,65 +515,85 @@ bsh_ratio_candidates <- bsh_ratio_candidates |>
         "other"
     ),
 
+
+    # -------------------------------------------------------------------------
+    # Years represented by selected donor pool
+    # -------------------------------------------------------------------------
+
+    selected_donor_first_year = case_when(
+
+      ratio_source == "fleet_fishery_period" ~
+        donor_first_year_L1,
+
+      ratio_source == "fleet_longline_period" ~
+        donor_first_year_L2,
+
+      ratio_source == "fishery_period" ~
+        donor_first_year_L3,
+
+      ratio_source == "longline_period" ~
+        donor_first_year_L4,
+
+      TRUE ~
+        NA_real_
+    ),
+
+
+    selected_donor_last_year = case_when(
+
+      ratio_source == "fleet_fishery_period" ~
+        donor_last_year_L1,
+
+      ratio_source == "fleet_longline_period" ~
+        donor_last_year_L2,
+
+      ratio_source == "fishery_period" ~
+        donor_last_year_L3,
+
+      ratio_source == "longline_period" ~
+        donor_last_year_L4,
+
+      TRUE ~
+        NA_real_
+    ),
+
+
+    # -------------------------------------------------------------------------
+    # Temporal support
+    #
+    # Distinguishes interpolation within the observed donor years from
+    # backcasting or forward extrapolation.
+    # -------------------------------------------------------------------------
+
+    temporal_support = case_when(
+
+      ratio_source == "no_donor" ~
+        "none",
+
+      YEAR < selected_donor_first_year ~
+        "backcast",
+
+      YEAR > selected_donor_last_year ~
+        "forward_extrapolation",
+
+      TRUE ~
+        "within_donor_period"
+    ),
+
+
+    # -------------------------------------------------------------------------
+    # Reconstructed BSH
+    # -------------------------------------------------------------------------
+
     bsh_ratio_estimate = if_else(
       !is.na(selected_ratio),
       rc_target * selected_ratio,
       NA_real_
     )
   )
+#---------------------------------------------------------------
 
-bsh_ratio_annual <- bsh_ratio_candidates |>
-  group_by(YEAR) |>
-  summarise(
-    reconstructed_unreported_bsh =
-      sum(
-        bsh_ratio_estimate,
-        na.rm = TRUE
-      ),
-
-    n_reconstructed_strata =
-      sum(!is.na(bsh_ratio_estimate)),
-
-    target_mt_reconstructed =
-      sum(
-        rc_target[
-          !is.na(bsh_ratio_estimate)
-        ],
-        na.rm = TRUE
-      ),
-
-    .groups = "drop"
-  )
-
-bsh_reported_annual <- reconstruction_strata |>
-  group_by(YEAR) |>
-  summarise(
-    reported_bsh =
-      sum(rc_bsh, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-
-bsh_ratio_series <- bsh_reported_annual |>
-  left_join(
-    bsh_ratio_annual,
-    by = "YEAR"
-  ) |>
-  mutate(
-
-    reconstructed_unreported_bsh =
-      coalesce(
-        reconstructed_unreported_bsh,
-        0
-      ),
-
-    bsh_ratio_total =
-      reported_bsh +
-      reconstructed_unreported_bsh
-  )
-
-
-# diagnostic outpu
+# diagnostic output
 bsh_donors |>
   filter(YEAR <= 1980) |>
   count(
@@ -581,25 +621,7 @@ bsh_donors |>
   arrange(desc(target_mt))
 
 # other diagnostics
-
-mutate(
-  ratio_support = case_when(
-    ratio_source == "no_donor" ~
-      "none",
-
-    ratio_source == "longline_period" &
-      n_fleets_L4 == 1 ~
-      "single_fleet_proxy",
-
-    ratio_source == "longline_period" &
-      n_fleets_L4 >= 2 ~
-      "multi_fleet",
-
-    TRUE ~
-      "fleet_or_fishery_specific"
-  )
-)
-
+ 
 jpn_early_ratio <- reconstruction_strata |>
   filter(
     FISHERY_GROUP_CODE == "LL",
@@ -636,3 +658,47 @@ ggplot(
     subtitle = "1952–1980"
   ) +
   theme_bw()
+
+
+
+bsh_ratio_candidates |>
+  count(
+    ratio_support,
+    temporal_support,
+    sort = TRUE
+  )
+
+ 
+
+bsh_ratio_support_summary <- bsh_ratio_candidates |>
+  group_by(
+    ratio_support,
+    temporal_support
+  ) |>
+  summarise(
+    n_strata = n(),
+    target_mt = sum(rc_target, na.rm = TRUE),
+    reconstructed_bsh_mt = sum(bsh_ratio_estimate, na.rm = TRUE),
+    first_year = min(YEAR),
+    last_year = max(YEAR),
+    .groups = "drop"
+  ) |>
+  arrange(desc(reconstructed_bsh_mt))
+
+print(bsh_ratio_support_summary, n = Inf)
+
+bsh_ratio_early_support <- bsh_ratio_candidates |>
+  filter(YEAR <= 1980) |>
+  group_by(
+    ratio_support,
+    temporal_support
+  ) |>
+  summarise(
+    n_strata = n(),
+    target_mt = sum(rc_target, na.rm = TRUE),
+    reconstructed_bsh_mt = sum(bsh_ratio_estimate, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(reconstructed_bsh_mt))
+
+print(bsh_ratio_early_support, n = Inf)

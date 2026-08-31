@@ -350,6 +350,30 @@ nei_candidates <- nei_candidates |>
   )
 
 
+nei_candidates <- nei_candidates |>
+  mutate(
+
+    donor_first_year_N1 = case_when(
+      nei_N1_source == "same_fleet_same_fishery" ~ donor_first_year_L1,
+      nei_N1_source == "same_fleet_same_group"   ~ donor_first_year_L2,
+      nei_N1_source == "multi_fleet_same_fishery" ~ donor_first_year_L3,
+      TRUE ~ NA_real_
+    ),
+
+    donor_last_year_N1 = case_when(
+      nei_N1_source == "same_fleet_same_fishery" ~ donor_last_year_L1,
+      nei_N1_source == "same_fleet_same_group"   ~ donor_last_year_L2,
+      nei_N1_source == "multi_fleet_same_fishery" ~ donor_last_year_L3,
+      TRUE ~ NA_real_
+    ),
+
+    temporal_support_N1 = case_when(
+      is.na(p_bsh_N1) ~ "no_donor",
+      YEAR < donor_first_year_N1 ~ "backcast",
+      YEAR > donor_last_year_N1  ~ "forward_extrapolation",
+      TRUE ~ "within_donor_period"
+    )
+  )
 # =============================================================================
 # 10. N2: Hierarchical composition
 # =============================================================================
@@ -526,6 +550,36 @@ nei_scenario_annual <- nei_candidates |>
     .groups = "drop"
   )
 
+
+# ==========================================================================
+# Unresolved historical shark catch 
+#
+nei_unallocated_by_group_period <- nei_candidates |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    FISHERY_GROUP,
+    period
+  ) |>
+  summarise(
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    allocated_bsh_N1 =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    unallocated_generic_N1 =
+      sum(generic_unallocated_N1, na.rm = TRUE),
+
+    pct_generic_unallocated =
+      100 * unallocated_generic_N1 / generic_shark_mt,
+
+    .groups = "drop"
+  ) |>
+  filter(generic_shark_mt > 0) |>
+  arrange(desc(unallocated_generic_N1))
+
+print(nei_unallocated_by_group_period, n = Inf)
 
 # ==========================================================================
 # Diagnostics and checks. 

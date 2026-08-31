@@ -30,3 +30,41 @@ data/processed/*
 # OS
 .DS_Store
 Thumbs.db
+
+ 
+
+# =============================================================================
+# IDE / temporary files
+# =============================================================================
+
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.vscode/
+
+# Positron visual-document temporary files
+docs/.vdoc*
+
+
+# =============================================================================
+# Quarto / rendered document intermediates
+# =============================================================================
+
+.quarto/
+*_files/
+*_cache/
+*.knit.md
+*.utf8.md
+
+
+# =============================================================================
+# Rendered manuscript formats
+# Keep the .qmd and bibliography under version control
+# =============================================================================
+
+docs/*.docx
+docs/*.pdf
+
+
+ 
