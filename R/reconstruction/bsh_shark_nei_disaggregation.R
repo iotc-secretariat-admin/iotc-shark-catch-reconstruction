@@ -408,110 +408,110 @@ bsh_nei_candidates <- shark_composition_strata |>
   )
 
 
+# # ============================================================================= delete this 
+# # 12. Attach BSH composition estimates
+# # =============================================================================
+
+# # bsh_nei_candidates <- bsh_nei_candidates |>
+
+# #   left_join(
+# #     comp_L1,
+# #     by = c(
+# #       "FLEET_CODE",
+# #       "FISHERY_CODE",
+# #       "period"
+# #     )
+# #   ) |>
+
+# #   left_join(
+# #     comp_L2,
+# #     by = c(
+# #       "FLEET_CODE",
+# #       "FISHERY_GROUP_CODE",
+# #       "period"
+# #     )
+# #   ) |>
+
+# #   left_join(
+# #     comp_L3,
+# #     by = c(
+# #       "FISHERY_CODE",
+# #       "period"
+# #     )
+# #   ) |>
+
+# #   left_join(
+# #     comp_L4,
+# #     by = c(
+# #       "FISHERY_GROUP_CODE",
+# #       "period"
+# #     )
+# #   )
+# # =============================================================================
+# # 13. Select composition donor
+# # =============================================================================
+
+# bsh_nei_candidates <- bsh_nei_candidates |>
+#   mutate(
+
+#     composition_source = case_when(
+
+#       !is.na(p_bsh_L1) ~
+#         "fleet_fishery_period",
+
+#       !is.na(p_bsh_L2) ~
+#         "fleet_group_period",
+
+#       !is.na(p_bsh_L3) ~
+#         "fishery_period",
+
+#       !is.na(p_bsh_L4) ~
+#         "fishery_group_period",
+
+#       TRUE ~
+#         "no_donor"
+#     ),
+
+#     selected_p_bsh = coalesce(
+#       p_bsh_L1,
+#       p_bsh_L2,
+#       p_bsh_L3,
+#       p_bsh_L4
+#     ),
+
+#     # Amount of generic shark catch assigned to BSH
+#     bsh_from_nei = if_else(
+#       !is.na(selected_p_bsh),
+#       shark_nei_mt * selected_p_bsh,
+#       NA_real_
+#     )
+#   )
+
+
+# # =============================================================================
+# # 14. Species-adjusted BSH
+# #
+# # This is NOT yet the complete reconstruction.
+# #
+# # It contains:
+# #
+# #     directly reported BSH
+# #           +
+# #     BSH allocated from generic shark catch
+# #
+# # No catch has yet been added for complete non-reporting.
+# # =============================================================================
+
+# bsh_nei_candidates <- bsh_nei_candidates |>
+#   mutate(
+#     bsh_species_adjusted =
+#       bsh_mt +
+#       coalesce(bsh_from_nei, 0)
+#   )
+
+
 # =============================================================================
-# 12. Attach BSH composition estimates
-# =============================================================================
-
-bsh_nei_candidates <- bsh_nei_candidates |>
-
-  left_join(
-    comp_L1,
-    by = c(
-      "FLEET_CODE",
-      "FISHERY_CODE",
-      "period"
-    )
-  ) |>
-
-  left_join(
-    comp_L2,
-    by = c(
-      "FLEET_CODE",
-      "FISHERY_GROUP_CODE",
-      "period"
-    )
-  ) |>
-
-  left_join(
-    comp_L3,
-    by = c(
-      "FISHERY_CODE",
-      "period"
-    )
-  ) |>
-
-  left_join(
-    comp_L4,
-    by = c(
-      "FISHERY_GROUP_CODE",
-      "period"
-    )
-  )
-# =============================================================================
-# 13. Select composition donor
-# =============================================================================
-
-bsh_nei_candidates <- bsh_nei_candidates |>
-  mutate(
-
-    composition_source = case_when(
-
-      !is.na(p_bsh_L1) ~
-        "fleet_fishery_period",
-
-      !is.na(p_bsh_L2) ~
-        "fleet_group_period",
-
-      !is.na(p_bsh_L3) ~
-        "fishery_period",
-
-      !is.na(p_bsh_L4) ~
-        "fishery_group_period",
-
-      TRUE ~
-        "no_donor"
-    ),
-
-    selected_p_bsh = coalesce(
-      p_bsh_L1,
-      p_bsh_L2,
-      p_bsh_L3,
-      p_bsh_L4
-    ),
-
-    # Amount of generic shark catch assigned to BSH
-    bsh_from_nei = if_else(
-      !is.na(selected_p_bsh),
-      shark_nei_mt * selected_p_bsh,
-      NA_real_
-    )
-  )
-
-
-# =============================================================================
-# 14. Species-adjusted BSH
-#
-# This is NOT yet the complete reconstruction.
-#
-# It contains:
-#
-#     directly reported BSH
-#           +
-#     BSH allocated from generic shark catch
-#
-# No catch has yet been added for complete non-reporting.
-# =============================================================================
-
-bsh_nei_candidates <- bsh_nei_candidates |>
-  mutate(
-    bsh_species_adjusted =
-      bsh_mt +
-      coalesce(bsh_from_nei, 0)
-  )
-
-
-# =============================================================================
-# 15. Early longline generic-shark reconstruction
+# 12. Early longline generic-shark reconstruction
 # =============================================================================
 
 early_ll_nei_summary <- bsh_nei_candidates |>

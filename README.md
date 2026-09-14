@@ -218,8 +218,8 @@ allocate reconstructed catch.
 │       ├── ef/
 │       │   └── IOTC-DATASETS-2026-08-13-EF-1952-2025.csv
 │       ├── rc/
-│       │   └── IOTC-DATASETS-2026-08-13-RC-RAW-1950-2025.csv
-│       └── external/
+│          └── IOTC-DATASETS-2026-08-13-RC-RAW-1950-2025.csv
+│        
 │
 ├── R/
 │   ├── processing/
@@ -278,8 +278,8 @@ allocate reconstructed catch.
     ├── refs.bib
     ├── ices-journal-of-marine-science.csl
     ├── journal_doc_template_ENG.docx
-    ├── rendered DOCX/PDF manuscript files
-    └── notes/
+    └── rendered DOCX/PDF manuscript files
+     
 ```
 
  
@@ -288,8 +288,7 @@ allocate reconstructed catch.
 
 The broad sequence is:
 
-```text
-I### Analytical workflow
+ 
 
 ```text
 Raw IOTC RC / CA / EF data
@@ -334,6 +333,52 @@ R/diagnostics/                R/exploration/
                     docs/
                Quarto working paper
 ```
+
+## Reconstruction production pipeline
+
+```text
+1. R/processing/Initial_data_import.R
+        |
+        v
+2. R/processing/harmonize_iotc_codes.R
+        |
+        v
+3. R/processing/build_reconstruction_strata.R
+        |
+        +-----------------------------------+
+        |                                   |
+        v                                   v
+      BSH branch                          SMA branch
+        |                                   |
+4a. bsh_shark_nei_disaggregation.R       4b. sma_reporting_states.R
+        |                                   |
+5a. bsh_nei_scenarios.R                  5b. sma_hscr_species_composition.R
+        |                                   |
+6a. bsh_nei_historical_sensitivity.R     6b. sma_hscr_nonreporting.R
+        |                                   |
+7a. bsh_ratio_reconstruction.R           7b. sma_gam_species_composition.R
+        |                                   |
+8a. bsh_gam_species_composition.R        8b. reconstruct_sma_scenarios.R
+        |
+9a. reconstruct_bsh_scenarios.R
+        |
+        +------------------+----------------+
+                           |
+                           v
+             final_BSH_SMA_annual_reconstructed_catch.csv
+
+```
+
+### Diagnostics are not necessarily required to run the reconstruction
+```text
+R/diagnostics/
+    compare_rc_ca_shark_composition.R
+    compare_rc_ca_sma_composition.R
+    plot_bsh_rc_history.R
+
+R/exploration/
+```
+
 ## Blue shark reconstruction
 
 The final BSH reconstruction contains:

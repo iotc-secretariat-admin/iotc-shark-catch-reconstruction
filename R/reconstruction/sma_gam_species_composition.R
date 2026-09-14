@@ -3738,10 +3738,10 @@ write_csv(
 # 39. Save model objects  and summary tables. 
 # =============================================================================
 
-sma_gam_output_dir <- "C:/Users/JSR/Dropbox/JoelWork/IOTC/BSH_SMA_CATCH_WPEB_22_2026/IOTC_Shark_Catch_Reconstruction/outputs/sma/gam/"
-sma_gam_figure_dir <- "C:/Users/JSR/Dropbox/JoelWork/IOTC/BSH_SMA_CATCH_WPEB_22_2026/IOTC_Shark_Catch_Reconstruction/outputs/sma/gam/figures"
-
-
+sma_gam_output_dir <- "outputs/sma/gam"
+sma_gam_figure_dir <- "outputs/sma/gam/figures"
+dir.create(sma_gam_output_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(sma_gam_figure_dir, recursive = TRUE, showWarnings = FALSE)
 #    
 saveRDS(
   sma_shark_gam4,
