@@ -320,10 +320,10 @@ The main assessment-ready output is:
 
 It contains annual:
 
--reported BSH;
--BSH HSCR N1;
--BSH HSCR N2;
--recommended BSH;
+- reported BSH;
+- BSH HSCR N1;
+- BSH HSCR N2;
+- recommended BSH;
 - reported SMA;
 - SMA HSCR N1;
 - SMA HSCR N2; and
@@ -345,3 +345,16 @@ Assessment-specific input datasets and analytical outputs should be
 retained so changes caused by source-data revisions can be distinguished
 from changes in reconstruction methodology.
 
+
+## Manuscript
+
+The working paper source is:
+
+> docs/Reconstructing_hist_BSH_SMA_catches_IOTC_updated.qmd
+
+The bibliography is:
+
+> docs/refs.bib
+
+Rendered PDF and DOCX files are excluded from version control and can be
+regenerated from the Quarto source. 

@@ -5,7 +5,21 @@
 #
 # PURPOSE
 # -------
-# Estimate:
+#   Evaluate a beta-regression GAM as a sensitivity to the empirical
+#   HSCR allocation of generic Sharks NEI (SKH) to blue shark. 
+# Inputs:
+#   - BSH reconstruction strata
+#   - identified shark species composition
+#   - target catch composition
+#
+# Main outputs:
+#   - bsh_gam_hscr_comparison
+#   - bsh_gam_hscr_summary
+#   - bsh_gam_hscr_by_group
+#   - gam_cv_final
+#   - gam_cv_by_group
+#
+# Estimation Method:
 #
 #   P(BSH | identified shark catch)
 #
@@ -20,8 +34,7 @@
 #
 # IMPORTANT
 # ---------
-# This script addresses UNDER-REPORTING TO SPECIES.
-#
+# This script addresses UNDER-REPORTING TO SPECIES.#
 # It does NOT estimate completely unreported shark catch.
 #
 # =============================================================================
