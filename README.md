@@ -39,26 +39,26 @@ among species.
 Generic Sharks NEI (`SKH`) are allocated using **Hierarchical
 Species-Composition Reconstruction (HSCR)**.
 
-For donor set \(d(i)\),
+For donor set $d(i)$, the focal-species proportion is
 
-$$
+```math
 \hat{p}_{s,d(i)}
 =
 \frac{
-  \sum_{j \in d(i)} C_{s,j}
+\sum_{j \in d(i)} C_{s,j}
 }{
-  \sum_{j \in d(i)} C_{\mathrm{identified\ shark},j}
+\sum_{j \in d(i)} C_{\mathrm{identified\ shark},j}
 }.
-$$
+```
 
 Generic shark catch is then allocated as
 
-\[
-\hat{C}_{s,i}^{SKH}
+```math
+\hat{C}_{s,i}^{\mathrm{SKH}}
 =
-C_{SKH,i}
+C_{\mathrm{SKH},i}
 \hat{p}_{s,d(i)}.
-\]
+```
 
 Two principal HSCR scenarios are retained:
 
@@ -71,20 +71,31 @@ Two principal HSCR scenarios are retained:
 SMA requires an additional taxonomic reconstruction because catches may
 be reported as mako sharks NEI (`MAK`).
 
-The SMA proportion of identified mako catch is estimated as
+For donor set \(d(i)\), the SMA proportion of identified mako catch is
 
-\[
-\hat{p}_{SMA,d(i)}
+```math
+\hat{p}_{\mathrm{SMA},d(i)}
 =
 \frac{
-  \sum C_{SMA}
+\sum_{j \in d(i)} C_{\mathrm{SMA},j}
 }{
-  \sum (C_{SMA} + C_{LMA})
+\sum_{j \in d(i)}
+\left(
+C_{\mathrm{SMA},j}
++
+C_{\mathrm{LMA},j}
+\right)
 }.
-\]
+```
 
-This proportion is used to allocate unresolved `MAK` catch between
-shortfin and longfin mako.
+Unresolved mako catch is then allocated as
+
+```math
+\hat{C}_{\mathrm{SMA},i}^{\mathrm{MAK}}
+=
+C_{\mathrm{MAK},i}
+\hat{p}_{\mathrm{SMA},d(i)}.
+```
 
 
 ### Complete non-reporting
@@ -93,24 +104,26 @@ Where target catch is reported but shark catch is absent entirely,
 species-specific catch is reconstructed using empirically supported
 shark-to-target catch relationships.
 
-For donor group \(d(i)\),
+For donor set \(d(i)\), the species-to-target catch ratio is
 
-$$
-\hat{R}_{s,d(i)} 
+```math
+\hat{R}_{s,d(i)}
 =
-\frac{ \sum C_s}{
-  \sum C_{\mathrm{target}}
+\frac{
+\sum_{j \in d(i)} C_{s,j}
+}{
+\sum_{j \in d(i)} C_{\mathrm{target},j}
 }.
-$$
+```
 
-Catch in recipient stratum $(i)$ is then
+Catch in recipient stratum \(i\) is then reconstructed as
 
-\[
+```math
 \hat{C}_{s,i}
 =
 C_{\mathrm{target},i}
 \hat{R}_{s,d(i)}.
-\]
+```
 
 Donor selection is hierarchical and retains information on temporal
 support:
@@ -133,7 +146,7 @@ modelled using beta regression.
 
 The general model structure is
 
-\[
+```math
 \mathrm{logit}(E[p_s])
 =
 \mathrm{Fishery}
@@ -143,7 +156,7 @@ s(\mathrm{Year}, by=\mathrm{Fishery})
 s(\mathrm{Fleet}, RE)
 +
 \sum_k s(\mathrm{Target\ composition}_k).
-\]
+```
 
 Model support is evaluated primarily through:
 
@@ -236,3 +249,99 @@ allocate reconstructed catch.
     └── refs.bib
 
 ```
+
+## Main analytical workflow
+
+The broad sequence is:
+
+```text
+IOTC RC / CA / EF data
+        |
+        v
+Standardize fleet, fishery, gear and species fields
+        |
+        v
+Construct Fleet × Fishery × Year reconstruction strata
+        |
+        +-----------------------------+
+        |                             |
+        v                             v
+Taxonomic aggregation          Complete non-reporting
+        |                             |
+        v                             v
+HSCR allocation                Shark / target donor ratios
+        |                             |
+        +---------------+-------------+
+                        |
+                        v
+              Species reconstruction
+                        |
+                 +------+------+
+                 |             |
+                 v             v
+                BSH           SMA
+                 |             |
+                 |        MAK allocation
+                 |             |
+                 +------+------+
+                        |
+                        v
+             Final annual catch series
+```
+## Blue shark reconstruction
+
+The final BSH reconstruction contains:
+
+- reported BSH;
+- BSH allocated from SKH; and
+- BSH estimated for complete non-reporting.
+
+HSCR N1 and N2 provide the principal empirical reconstruction range.
+
+A beta-GAM species-composition model is retained as a sensitivity.
+
+## Shortfin mako reconstruction
+
+The final SMA reconstruction contains:
+
+- reported SMA;
+- empirical allocation of MAK between SMA and LMA;
+- HSCR allocation of SKH; and
+- supported reconstruction of complete non-reporting.
+
+The SMA GAM analyses are retained as sensitivities or diagnostics rather
+than preferred reconstructions.
+
+## Principal output
+
+The main assessment-ready output is: 
+
+> outputs/final_BSH_SMA_annual_reconstructed_catch.csv
+
+It contains annual:
+
+-reported BSH;
+-BSH HSCR N1;
+-BSH HSCR N2;
+-recommended BSH;
+- reported SMA;
+- SMA HSCR N1;
+- SMA HSCR N2; and
+- recommended SMA.
+
+The recommended annual estimate is currently reported as the midpoint
+between N1 and N2, while both empirical reconstruction scenarios are
+retained explicitly.
+
+## Reproducibility
+
+Historical IOTC catch records are revised through time. Results therefore
+depend on both:
+
++ the reconstruction method; and
++ the version of the underlying IOTC data.
+
+Assessment-specific input datasets and analytical outputs should be
+retained so changes caused by source-data revisions can be distinguished
+from changes in reconstruction methodology.
+
