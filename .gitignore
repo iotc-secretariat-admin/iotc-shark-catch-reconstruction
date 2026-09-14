@@ -116,4 +116,8 @@ docs/*.docx
 docs/*.pdf
 
 
- 
+ R/import/
+R/tests/
+R/plotting/
+R/import/
+R/functions/
