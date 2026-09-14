@@ -115,3 +115,44 @@ shark_effort_summary <-
   )
 
 print(shark_effort_summary, n = 100)
+
+
+shark_temporal_coverage <-
+  ca_dat |>
+  dplyr::filter(SPECIES_CODE %in% c("BSH", "SMA")) |>
+  dplyr::group_by(
+    SPECIES_CODE,
+    FISHERY_GROUP_CODE,
+    GEAR_CODE,
+    CATCH_UNIT_CODE
+  ) |>
+  dplyr::summarise(
+    first_year = min(YEAR, na.rm = TRUE),
+    last_year  = max(YEAR, na.rm = TRUE),
+    n_years    = dplyr::n_distinct(YEAR),
+    n_records  = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(
+    SPECIES_CODE,
+    dplyr::desc(n_records)
+  )
+
+print(shark_temporal_coverage, n = 100)
+
+ rc_geatr_group_tbl <- rc_dat |>
+  dplyr::distinct(
+    FISHERY_GROUP_CODE,
+    FISHERY_GROUP,
+    FISHERY_CODE,
+    FISHERY,
+    GEAR_CODE,
+    GEAR
+  ) |>
+  dplyr::arrange(
+    FISHERY_GROUP_CODE,
+    FISHERY_CODE,
+    GEAR_CODE
+  )
+
+print(rc_geatr_group_tbl, n = 100)

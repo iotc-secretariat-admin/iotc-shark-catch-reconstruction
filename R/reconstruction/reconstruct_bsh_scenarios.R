@@ -435,10 +435,127 @@ p_bsh_scenarios <- ggplot(
     panel.grid.minor = element_blank()
   )
 
-p_bsh_scenarios
+p_bsh_scenarios # this is old
 #
 
+#---------------------
+# Join GAM allocation to the existing BSH annual scenario data
+bsh_scenarios_annual2 <-
+  bsh_scenarios_annual |>
+  left_join(
+    nei_scenario_annual |>
+      select(
+        YEAR,
+        bsh_N1_mt,
+        bsh_N2_mt
+      ),
+    by = "YEAR"
+  ) |>
+  left_join(
+    bsh_gam_annual |>
+      select(
+        YEAR,
+        bsh_GAM_mt
+      ),
+    by = "YEAR"
+  ) |>
+  mutate(
+    final_HSCR_N1_mt =
+      reported_bsh_mt +
+      bsh_N1_mt +
+      nonreport_added_mt,
 
+    final_HSCR_N2_mt =
+      reported_bsh_mt +
+      bsh_N2_mt +
+      nonreport_added_mt,
+
+    final_HSCR_midpoint_mt =
+      (final_HSCR_N1_mt + final_HSCR_N2_mt) / 2,
+
+    final_GAM_mt =
+      reported_bsh_mt +
+      bsh_GAM_mt +
+      nonreport_added_mt
+  )
+
+p_bsh_final_reconstruction <-
+  ggplot(
+    bsh_scenarios_annual2,
+    aes(x = YEAR)
+  ) +
+
+  # HSCR N1-N2 range: primary reconstruction
+  geom_ribbon(
+    aes(
+      ymin = pmin(final_HSCR_N1_mt, final_HSCR_N2_mt) / 1000,
+      ymax = pmax(final_HSCR_N1_mt, final_HSCR_N2_mt) / 1000,
+      fill = "HSCR N1-N2 range"
+    ),
+    alpha = 0.30
+  ) +
+
+  # HSCR midpoint
+  geom_line(
+    aes(
+      y = final_HSCR_midpoint_mt / 1000,
+      colour = "HSCR reconstruction"
+    ),
+    linewidth = 0.9
+  ) +
+
+  # GAM sensitivity
+  geom_line(
+    aes(
+      y = final_GAM_mt / 1000,
+      colour = "GAM sensitivity"
+    ),
+    linewidth = 0.9,
+    linetype = "dashed"
+  ) +
+
+  # Reported catch for reference
+  geom_line(
+    aes(
+      y = reported_bsh_mt / 1000,
+      colour = "Reported BSH"
+    ),
+    linewidth = 0.8
+  ) +
+
+  scale_colour_viridis_d() +
+  scale_fill_viridis_d() +
+
+  labs(
+    x = "Year",
+    y = "BSH catch (1000 t)",
+    colour = NULL,
+    fill = NULL,
+    title = "Reconstructed blue shark retained catch",
+    subtitle =
+      "HSCR N1-N2 primary reconstruction and GAM sensitivity"
+  ) +
+
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  )
+
+p_bsh_final_reconstruction
+
+ggsave(
+  filename =
+    "outputs/bsh/gam/figures/bsh_final_catch_comparison.png",
+  plot =
+    p_bsh_final_reconstruction,
+  width = 9,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+#-----------------
 
 bsh_added_components <- bsh_scenarios_annual |>
   select(
@@ -581,3 +698,26 @@ generic_broad <- c(
   generic_extended,
   "SKX"
 )
+
+
+ 
+
+write_csv(
+  bsh_scenarios_annual,
+  file.path(
+    bsh_gam_output_dir,
+    "bsh_scenarios_annual.csv"
+  )
+)
+
+
+write_csv(
+  bsh_scenarios_annual2,
+  file.path(
+    bsh_gam_output_dir,
+    "bsh_scenarios_annual2.csv"
+  )
+)
+
+
+bsh_scenarios_annual2

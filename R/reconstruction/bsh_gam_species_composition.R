@@ -918,7 +918,7 @@ gam_cv_by_group
 
 # Overall observed vs predicted CV plot
 
-ggplot(
+p_lofo_cv_bsh<- ggplot(
   cv_results,
   aes(
     x = observed,
@@ -945,6 +945,10 @@ ggplot(
     subtitle = "GAM species-composition model"
   ) +
   theme_bw()
+
+p_lofo_cv_bsh
+
+
 
 #-  ==================================================================================
 # compare gam4 and gam5
@@ -2171,7 +2175,268 @@ gam_coverage_summary
 bsh_gam_hscr_by_group
 
 # some comparison plotting 
+# =============================================================================
+# Rebuild BSH GAM-HSCR comparison by fishery group
+# =============================================================================
 
+bsh_gam_hscr_by_group <-
+  bsh_gam_hscr_comparison |>
+  group_by(
+    FISHERY_GROUP_CODE
+  ) |>
+  summarise(
+    n_strata = n(),
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    bsh_HSCR_N1_mt =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    bsh_HSCR_N2_mt =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    bsh_GAM_mt =
+      sum(bsh_from_nei_gam, na.rm = TRUE),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+    difference_GAM_N1_mt =
+      bsh_GAM_mt - bsh_HSCR_N1_mt,
+
+    difference_GAM_N2_mt =
+      bsh_GAM_mt - bsh_HSCR_N2_mt
+  )
+
+bsh_gam_hscr_by_group
+
+# =============================================================================
+# BSH GAM allocation by temporal support
+# =============================================================================
+
+bsh_gam_temporal_support <-
+  bsh_gam_hscr_comparison |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    gam_temporal_support
+  ) |>
+  summarise(
+    n_strata = n(),
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    bsh_GAM_mt =
+      sum(bsh_from_nei_gam, na.rm = TRUE),
+
+    bsh_HSCR_N1_mt =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    bsh_HSCR_N2_mt =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+    GAM_minus_N1_mt =
+      bsh_GAM_mt - bsh_HSCR_N1_mt,
+
+    GAM_minus_N2_mt =
+      bsh_GAM_mt - bsh_HSCR_N2_mt
+  )
+
+bsh_gam_temporal_support
+# =============================================================================
+# BSH GAM allocation by temporal support
+# =============================================================================
+
+bsh_gam_temporal_support <-
+  bsh_gam_hscr_comparison |>
+  group_by(
+    FISHERY_GROUP_CODE,
+    gam_temporal_support
+  ) |>
+  summarise(
+    n_strata = n(),
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    bsh_GAM_mt =
+      sum(bsh_from_nei_gam, na.rm = TRUE),
+
+    bsh_HSCR_N1_mt =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    bsh_HSCR_N2_mt =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+    GAM_minus_N1_mt =
+      bsh_GAM_mt - bsh_HSCR_N1_mt,
+
+    GAM_minus_N2_mt =
+      bsh_GAM_mt - bsh_HSCR_N2_mt
+  )
+
+bsh_gam_temporal_support
+
+bsh_gam_temporal_support_total <-
+  bsh_gam_hscr_comparison |>
+  group_by(
+    gam_temporal_support
+  ) |>
+  summarise(
+    n_strata = n(),
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    bsh_GAM_mt =
+      sum(bsh_from_nei_gam, na.rm = TRUE),
+
+    bsh_HSCR_N1_mt =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    bsh_HSCR_N2_mt =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+    proportion_GAM =
+      bsh_GAM_mt /
+      sum(bsh_GAM_mt),
+
+    GAM_minus_N1_mt =
+      bsh_GAM_mt - bsh_HSCR_N1_mt
+  )
+
+bsh_gam_temporal_support_total
+
+# =============================================================================
+# Detailed OT diagnostic
+# =============================================================================
+
+bsh_ot_gam_diagnostic <-
+  bsh_gam_hscr_comparison |>
+  filter(
+    FISHERY_GROUP_CODE == "OT"
+  ) |>
+  group_by(
+    gam_temporal_support,
+    fleet_seen_in_training
+  ) |>
+  summarise(
+    n_strata = n(),
+
+    first_year =
+      min(YEAR, na.rm = TRUE),
+
+    last_year =
+      max(YEAR, na.rm = TRUE),
+
+    mean_p_bsh_gam =
+      weighted.mean(
+        p_bsh_gam,
+        w = generic_shark_mt,
+        na.rm = TRUE
+      ),
+
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    bsh_HSCR_N1_mt =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    bsh_HSCR_N2_mt =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    bsh_GAM_mt =
+      sum(bsh_from_nei_gam, na.rm = TRUE),
+
+    .groups = "drop"
+  ) |>
+  mutate(
+    GAM_minus_N1_mt =
+      bsh_GAM_mt - bsh_HSCR_N1_mt,
+
+    GAM_minus_N2_mt =
+      bsh_GAM_mt - bsh_HSCR_N2_mt
+  )
+
+bsh_ot_gam_diagnostic
+
+
+bsh_ot_top_strata <-
+  bsh_gam_hscr_comparison |>
+  filter(
+    FISHERY_GROUP_CODE == "OT"
+  ) |>
+  mutate(
+    difference_N1 =
+      bsh_from_nei_gam -
+      bsh_from_nei_N1
+  ) |>
+  arrange(
+    desc(abs(difference_N1))
+  ) |>
+  select(
+    YEAR,
+    FLEET_CODE,
+    FISHERY_CODE,
+    generic_shark_mt,
+
+    p_bsh_N1,
+    p_bsh_N2,
+    p_bsh_gam,
+
+    bsh_from_nei_N1,
+    bsh_from_nei_N2,
+    bsh_from_nei_gam,
+
+    difference_N1,
+
+    gam_temporal_support,
+    fleet_seen_in_training,
+
+    donor_first_year,
+    donor_last_year,
+    donor_n,
+    donor_fleets
+  )
+
+print(
+  bsh_ot_top_strata,
+  n = 30
+)
+
+bsh_ot_annual <-
+  bsh_gam_hscr_comparison |>
+  filter(
+    FISHERY_GROUP_CODE == "OT"
+  ) |>
+  group_by(
+    YEAR
+  ) |>
+  summarise(
+    generic_shark_mt =
+      sum(generic_shark_mt, na.rm = TRUE),
+
+    HSCR_N1 =
+      sum(bsh_from_nei_N1, na.rm = TRUE),
+
+    HSCR_N2 =
+      sum(bsh_from_nei_N2, na.rm = TRUE),
+
+    GAM =
+      sum(bsh_from_nei_gam, na.rm = TRUE),
+
+    .groups = "drop"
+  )
 # =============================================================================
 # Annual BSH HSCR and GAM comparison
 # =============================================================================
@@ -2473,10 +2738,67 @@ write_csv(
 
 
 
+bsh_gam_cv_by_group_long <-
+  gam_cv_by_group |>
+  dplyr::select(
+    FISHERY_GROUP_CODE,
+    MAE,
+    RMSE
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(MAE, RMSE),
+    names_to = "metric",
+    values_to = "value"
+  )
+
+p_bsh_skh_gam_cv_by_group <- ggplot(
+  bsh_gam_cv_by_group_long,
+  aes(
+    x = FISHERY_GROUP_CODE,
+    y = value,
+    fill = metric
+  )
+) +
+  geom_col(
+    position = "dodge"
+  ) +
+  scale_fill_viridis_d(
+    option = "D"
+  ) +
+  labs(
+    x = "Fishery group",
+    y = "Prediction error",
+    fill = NULL
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "bottom"
+  )
 
 
+ggsave(
+  filename =
+    "outputs/bsh/gam/figures/bsh_skh_gam_cv_by_group.png",
+  plot =
+    p_bsh_skh_gam_cv_by_group,
+  width = 9,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
 
 
+ 
+ggsave(
+  filename =
+    "outputs/bsh/gam/figures/bsh_lofo_cv_bsh.png",
+  plot =
+    p_lofo_cv_bsh,
+  width = 9,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
 
 # =============================================================================
 # Identify canonical BSH HSCR annual source
@@ -2832,3 +3154,13 @@ gam_hscr_comparison |>
     bsh_GAM_mt =
       sum(bsh_from_nei_gam, na.rm = TRUE)
   )
+
+
+read_csv(
+  file.path(
+    "outputs/bsh/gam",
+    "bsh_skh_hscr_gam_summary.csv"
+  ),
+  show_col_types = FALSE
+)
+
