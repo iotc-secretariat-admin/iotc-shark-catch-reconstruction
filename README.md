@@ -205,88 +205,134 @@ history, spatial coverage, and fishing activity rather than to directly
 allocate reconstructed catch.
 
 
-## Repository structure
+ 
 
 ```text
 .
-├── data/
-│   └── Input data or local data links
+├── README.md
 │
-├── metadata/
-│   └── Data dictionaries and supporting metadata
+├── data/
+│   └── raw/
+│       ├── ca/
+│       │   └── IOTC-DATASETS-2026-08-13-CA-1952-2025.csv
+│       ├── ef/
+│       │   └── IOTC-DATASETS-2026-08-13-EF-1952-2025.csv
+│       ├── rc/
+│       │   └── IOTC-DATASETS-2026-08-13-RC-RAW-1950-2025.csv
+│       └── external/
 │
 ├── R/
-│   ├── functions/
-│   │   └── Shared functions
-│   │
-│   ├── import/
-│   │   └── Data import and standardization
-│   │
 │   ├── processing/
-│   │   └── Construction of common analytical strata
-│   │
-│   ├── reconstruction/
-│   │   ├── BSH reconstruction
-│   │   ├── SMA reconstruction
-│   │   ├── HSCR allocation
-│   │   ├── complete non-reporting reconstruction
-│   │   └── GAM sensitivity analyses
+│   │   ├── Initial_data_import.R
+│   │   ├── harmonize_iotc_codes.R
+│   │   └── build_reconstruction_strata.R
 │   │
 │   ├── diagnostics/
-│   │   └── Cross-validation and reconstruction diagnostics
+│   │   ├── compare_rc_ca_shark_composition.R
+│   │   ├── compare_rc_ca_sma_composition.R
+│   │   └── plot_bsh_rc_history.R
 │   │
-│   └── plotting/
-│       └── Manuscript and diagnostic figures
+│   ├── exploration/
+│   │   ├── data inventory and reporting diagnostics
+│   │   ├── spatial reporting maps
+│   │   ├── spatial catch and effort analyses
+│   │   └── SMA data inventory
+│   │
+│   ├── reconstruction/
+│   │   ├── bsh_shark_nei_disaggregation.R
+│   │   ├── bsh_nei_scenarios.R
+│   │   ├── bsh_nei_historical_sensitivity.R
+│   │   ├── bsh_ratio_reconstruction.R
+│   │   ├── bsh_gam_species_composition.R
+│   │   ├── reconstruct_bsh_scenarios.R
+│   │   ├── sma_reporting_states.R
+│   │   ├── sma_hscr_species_composition.R
+│   │   ├── sma_hscr_nonreporting.r
+│   │   ├── sma_gam_species_composition.R
+│   │   └── reconstruct_sma_scenarios.R
+│   │
+│   └── utils/
+│       └── check_repo.R
 │
 ├── outputs/
 │   ├── bsh/
+│   │   └── gam/
+│   │       ├── summary and comparison tables
+│   │       └── figures/
+│   │
 │   ├── sma/
+│   │   ├── reconstruction summaries and intermediate objects
+│   │   └── gam/
+│   │       ├── model diagnostics and comparison tables
+│   │       └── figures/
+│   │
 │   ├── spatial/
+│   │   ├── coverage summaries
+│   │   ├── fishing-ground lookup files
+│   │   └── figures/
+│   │
 │   └── final_BSH_SMA_annual_reconstructed_catch.csv
 │
 └── docs/
     ├── Reconstructing_hist_BSH_SMA_catches_IOTC_updated.qmd
-    └── refs.bib
-
+    ├── refs.bib
+    ├── ices-journal-of-marine-science.csl
+    ├── journal_doc_template_ENG.docx
+    ├── rendered DOCX/PDF manuscript files
+    └── notes/
 ```
+
+ 
 
 ## Main analytical workflow
 
 The broad sequence is:
 
 ```text
-IOTC RC / CA / EF data
+I### Analytical workflow
+
+```text
+Raw IOTC RC / CA / EF data
         |
         v
-Standardize fleet, fishery, gear and species fields
+R/processing/
+  import, harmonize codes, construct reconstruction strata
         |
-        v
-Construct Fleet × Fishery × Year reconstruction strata
-        |
-        +-----------------------------+
-        |                             |
-        v                             v
-Taxonomic aggregation          Complete non-reporting
-        |                             |
-        v                             v
-HSCR allocation                Shark / target donor ratios
-        |                             |
-        +---------------+-------------+
-                        |
-                        v
-              Species reconstruction
-                        |
-                 +------+------+
-                 |             |
-                 v             v
-                BSH           SMA
-                 |             |
-                 |        MAK allocation
-                 |             |
-                 +------+------+
-                        |
-                        v
-             Final annual catch series
+        +---------------------------+
+        |                           |
+        v                           v
+R/diagnostics/                R/exploration/
+  RC–CA comparisons             reporting history
+  composition checks            spatial patterns
+  historical checks             effort overlap
+        |                           |
+        +-------------+-------------+
+                      |
+                      v
+             R/reconstruction/
+                      |
+          +-----------+-----------+
+          |                       |
+          v                       v
+        BSH                       SMA
+          |                       |
+          |              reporting-state classification
+          |              MAK allocation
+          |              SKH HSCR allocation
+          |              non-reporting reconstruction
+          |              GAM sensitivities
+          |                       |
+          +-----------+-----------+
+                      |
+                      v
+                 outputs/
+                      |
+                      v
+ final_BSH_SMA_annual_reconstructed_catch.csv
+                      |
+                      v
+                    docs/
+               Quarto working paper
 ```
 ## Blue shark reconstruction
 
