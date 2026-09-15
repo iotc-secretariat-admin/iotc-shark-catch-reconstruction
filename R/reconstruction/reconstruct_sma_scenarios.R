@@ -560,5 +560,5 @@ sma_component_summary <-
 
 write_csv(
   sma_component_summary,
-  "outputs/sma_component_summary.csv"
+  "outputs/sma/sma_component_summary.csv"
 )

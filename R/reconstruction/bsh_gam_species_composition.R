@@ -45,7 +45,14 @@ library(ggplot2)
 library(mgcv)
 library(purrr)
 library(tibble)
+library(readr)
 
+
+# =============================================================================
+# Runtime options
+# =============================================================================
+
+run_cross_validation <- FALSE
 
 # =============================================================================
 # 1. Species definitions
@@ -736,7 +743,7 @@ gam_predictive_formula <-
 # Predictions are made only for fishery groups represented in the
 # corresponding training fold.
 # =============================================================================
-
+if (run_cross_validation) {
 cv_fleets <- sort(
   unique(as.character(gam_train$FLEET_CODE))
 )
@@ -999,7 +1006,7 @@ p_lofo_cv_bsh<- ggplot(
 
 p_lofo_cv_bsh
 
-
+}
 
 #-  ==================================================================================
 # compare gam4 and gam5
@@ -1079,23 +1086,7 @@ cv_gam_model <- function(
   ) 
 }
 
-# lets compare modesl 3, 4,  & 5
-# check 
-cv3 <- cv_gam_model(
-  formula(gam3),
-  gam_train
-)
-
-cv4 <- cv_gam_model(
-  formula(gam4),
-  gam_train
-)
-
-cv5 <- cv_gam_model(
-  formula(gam5),
-  gam_train
-)
-# summarize 
+# summarize function 
 summarise_cv <- function(x, name) {
 
   x |>
@@ -1121,13 +1112,32 @@ summarise_cv <- function(x, name) {
     )
 }
 
+if (run_cross_validation) {
+# lets compare modesl 3, 4,  & 5
+# check 
+cv3 <- cv_gam_model(
+  formula(gam3),
+  gam_train
+)
+
+cv4 <- cv_gam_model(
+  formula(gam4),
+  gam_train
+)
+
+cv5 <- cv_gam_model(
+  formula(gam5),
+  gam_train
+)
+
+
 bind_rows(
   summarise_cv(cv3, "GAM3"),
   summarise_cv(cv4, "GAM4"),
   summarise_cv(cv5, "GAM5")
 )
 
-
+} # end gam comparison if the run_cross_validation flag is ==TRUE
 # =============================================================================
 # 14. Generic-shark prediction strata
 #
@@ -1278,6 +1288,20 @@ gam_nei_predictions <- gam_nei_supported |>
   )
 
 
+# =============================================================================
+# Determine whether prediction fleets were represented in GAM training data
+# =============================================================================
+
+training_fleets <- gam_train |>
+  distinct(FLEET_CODE) |>
+  pull(FLEET_CODE) |>
+  as.character()
+
+gam_nei_predictions <- gam_nei_predictions |>
+  mutate(
+    fleet_seen_in_training =
+      as.character(FLEET_CODE) %in% training_fleets
+  )
 # =============================================================================
 # 17. Determine temporal support for GAM predictions
 # =============================================================================
@@ -1831,90 +1855,63 @@ gam.check(gam4_final)
 
 
 
-# run the Cross validation. 
-cv_final <- cv_gam_model(
-  gam_predictive_formula,
-  gam_train
-)
+# run the Cross validation if the flag is set to TRUE
+if (run_cross_validation) {
 
-gam_cv_final <- cv_final |>
-  summarise(
+  cv_final <- cv_gam_model(
+    gam_predictive_formula,
+    gam_train
+  )
 
-    n = n(),
-
-    MAE =
-      mean(
-        abs(predicted - observed),
-        na.rm = TRUE
-      ),
-
-    RMSE =
-      sqrt(
+  gam_cv_final <- cv_final |>
+    summarise(
+      n = n(),
+      MAE = mean(abs(predicted - observed), na.rm = TRUE),
+      RMSE = sqrt(
         mean(
           (predicted - observed)^2,
           na.rm = TRUE
         )
       ),
-
-    bias =
-      mean(
+      bias = mean(
         predicted - observed,
         na.rm = TRUE
       ),
-
-    rho =
-      cor(
+      rho = cor(
         predicted,
         observed,
         method = "spearman",
         use = "complete.obs"
       )
-  )
+    )
 
-gam_cv_final
- 
-
-
-gam_cv_final_by_group <- cv_final |>
-  group_by(
-    FISHERY_GROUP_CODE
-  ) |>
-  summarise(
-
-    n = n(),
-
-    MAE =
-      mean(
+  gam_cv_final_by_group <- cv_final |>
+    group_by(FISHERY_GROUP_CODE) |>
+    summarise(
+      n = n(),
+      MAE = mean(
         abs(predicted - observed),
         na.rm = TRUE
       ),
-
-    RMSE =
-      sqrt(
+      RMSE = sqrt(
         mean(
           (predicted - observed)^2,
           na.rm = TRUE
         )
       ),
-
-    bias =
-      mean(
+      bias = mean(
         predicted - observed,
         na.rm = TRUE
       ),
-
-    rho =
-      cor(
+      rho = cor(
         predicted,
         observed,
         method = "spearman",
         use = "complete.obs"
       ),
-
-    .groups = "drop"
-  )
-
-gam_cv_final_by_group
+      .groups = "drop"
+    )
+}
 
 
 # =============================================================================
@@ -2184,10 +2181,13 @@ gam_coverage_summary <- gam_nei_predictions |>
       )
   )
 
-gam_coverage_summary
+ 
 
-gam_cv_final
-gam_cv_final_by_group
+if (run_cross_validation) {
+  print(gam_cv_final)
+  print(gam_cv_final_by_group)
+}
+
 gam_coverage_summary
 bsh_gam_hscr_by_group
 
@@ -2712,6 +2712,9 @@ dir.create(
 # =============================================================================
 # Save BSH HSCR-GAM comparison tables
 # =============================================================================
+# =============================================================================
+###############  Non-CV GAM-HSCR outputs
+# =============================================================================
 
 write_csv(
   bsh_gam_hscr_summary,
@@ -2737,14 +2740,8 @@ write_csv(
   )
 )
 
-write_csv(
-  gam_cv_by_group,
-  file.path(
-    bsh_gam_output_dir,
-    "bsh_skh_gam_cv_by_group.csv"
-  )
-)
-
+ 
+ 
 write_csv(
   bsh_gam_hscr_comparison,
   file.path(
@@ -2753,69 +2750,82 @@ write_csv(
   )
 )
 
+# =============================================================================
+# Cross-validation outputs
+# =============================================================================
 
+if (run_cross_validation) {
 
-bsh_gam_cv_by_group_long <-
-  gam_cv_by_group |>
-  dplyr::select(
-    FISHERY_GROUP_CODE,
-    MAE,
-    RMSE
-  ) |>
-  tidyr::pivot_longer(
-    cols = c(MAE, RMSE),
-    names_to = "metric",
-    values_to = "value"
+  write_csv(
+    gam_cv_by_group,
+    file.path(
+      bsh_gam_output_dir,
+      "bsh_skh_gam_cv_by_group.csv"
+    )
   )
 
-p_bsh_skh_gam_cv_by_group <- ggplot(
-  bsh_gam_cv_by_group_long,
-  aes(
-    x = FISHERY_GROUP_CODE,
-    y = value,
-    fill = metric
+  bsh_gam_cv_by_group_long <-
+    gam_cv_by_group |>
+    dplyr::select(
+      FISHERY_GROUP_CODE,
+      MAE,
+      RMSE
+    ) |>
+    tidyr::pivot_longer(
+      cols = c(MAE, RMSE),
+      names_to = "metric",
+      values_to = "value"
+    )
+
+  p_bsh_skh_gam_cv_by_group <- ggplot(
+    bsh_gam_cv_by_group_long,
+    aes(
+      x = FISHERY_GROUP_CODE,
+      y = value,
+      fill = metric
+    )
+  ) +
+    geom_col(
+      position = "dodge"
+    ) +
+    scale_fill_viridis_d(
+      option = "D"
+    ) +
+    labs(
+      x = "Fishery group",
+      y = "Prediction error",
+      fill = NULL
+    ) +
+    theme_bw() +
+    theme(
+      legend.position = "bottom"
+    )
+
+  ggsave(
+    filename =
+      "outputs/bsh/gam/figures/bsh_skh_gam_cv_by_group.png",
+    plot =
+      p_bsh_skh_gam_cv_by_group,
+    width = 9,
+    height = 6,
+    units = "in",
+    dpi = 300
   )
-) +
-  geom_col(
-    position = "dodge"
-  ) +
-  scale_fill_viridis_d(
-    option = "D"
-  ) +
-  labs(
-    x = "Fishery group",
-    y = "Prediction error",
-    fill = NULL
-  ) +
-  theme_bw() +
-  theme(
-    legend.position = "bottom"
+
+  ggsave(
+    filename =
+      "outputs/bsh/gam/figures/bsh_lofo_cv_bsh.png",
+    plot =
+      p_lofo_cv_bsh,
+    width = 9,
+    height = 6,
+    units = "in",
+    dpi = 300
   )
+}
 
 
-ggsave(
-  filename =
-    "outputs/bsh/gam/figures/bsh_skh_gam_cv_by_group.png",
-  plot =
-    p_bsh_skh_gam_cv_by_group,
-  width = 9,
-  height = 6,
-  units = "in",
-  dpi = 300
-)
 
-
- 
-ggsave(
-  filename =
-    "outputs/bsh/gam/figures/bsh_lofo_cv_bsh.png",
-  plot =
-    p_lofo_cv_bsh,
-  width = 9,
-  height = 6,
-  units = "in",
-  dpi = 300
-)
 
 # =============================================================================
 # Identify canonical BSH HSCR annual source
