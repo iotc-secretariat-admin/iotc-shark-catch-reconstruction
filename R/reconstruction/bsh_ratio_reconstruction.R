@@ -1,10 +1,5 @@
-#bsh_ratio_reconstruction.R
-
-library(dplyr)
-library(tidyr)
-library(purrr)
-
 # =============================================================================
+# bsh_ratio_reconstruction.R
 # Blue shark ratio-based reconstruction
 #
 # Estimate unreported BSH catch using BSH : target-catch ratios from
@@ -17,6 +12,9 @@ library(purrr)
 #   bsh_ratio_results
 # =============================================================================
 
+library(dplyr)
+library(tidyr)
+library(purrr)
 
 # -----------------------------------------------------------------------------
 # 1. Define analytical periods

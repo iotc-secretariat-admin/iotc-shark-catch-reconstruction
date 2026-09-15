@@ -31,12 +31,15 @@
 #
 # That component remains in:
 #
-#   sma_hscr_non_reporting.R
+#   sma_ratio_nonreporting.R
 #
 # and is based on SMA / target-catch donor ratios.
 #
 # =============================================================================
 
+if (!exists("run_cross_validation")) {
+  run_cross_validation <- FALSE
+}
 
 # =============================================================================
 # 1. Packages
@@ -1123,7 +1126,7 @@ fit_predict_sma_shark_lofo <- function(
 # =============================================================================
 # 13. SKH-model leave-one-fleet-out CV
 # =============================================================================
-
+if (run_cross_validation) {
 sma_shark_lofo <- map_dfr(
 
   unique(
@@ -1238,12 +1241,12 @@ print(
   n = Inf
 )
 
-
+}
 
 # =============================================================================
 # 14. Plot SKH-model LOFO performance
 # =============================================================================
-
+if (run_cross_validation) {
 p_sma_shark_lofo <- ggplot(
 
   sma_shark_lofo,
@@ -1303,7 +1306,7 @@ p_sma_shark_lofo <- ggplot(
 
 p_sma_shark_lofo
 
-
+}
 
 # =============================================================================
 # PART B
@@ -1788,7 +1791,7 @@ fit_predict_sma_mako_lofo <- function(
 # =============================================================================
 # 21. MAK-model LOFO
 # =============================================================================
-
+if (run_cross_validation) {  # this gates section 21 and 22 
 sma_mako_lofo <- map_dfr(
 
   unique(
@@ -1968,7 +1971,7 @@ p_sma_mako_lofo <- ggplot(
 
 p_sma_mako_lofo
 
-
+}   # end if (run_cross_validation) statement 
 
 # =============================================================================
 # PART C
@@ -3653,51 +3656,13 @@ print(
 
 
 #======================================================================================
-# # Save the revised objects. 
+# # Save the  objects. 
 
-
-# # Figures
-# "sma_skh_hscr_gam_annual_comparison_revised.png"
-# "sma_skh_hscr_gam_cumulative_comparison_revised.png"
-# "sma_skh_hscr_gam_annual_group_comparison_revised.png"
-
-
-ggsave(
-  file.path(
-    sma_gam_figure_dir,
-    "sma_skh_hscr_gam_annual_comparison_revised.png"
-  ),
-  p_sma_skh_method_annual_group_revised,
-  width = 9,
-  height = 5.5,
-  dpi = 300
-)
-
-
-
-ggsave(
-  file.path(
-    sma_gam_figure_dir,
-    "sma_skh_hscr_gam_cumulative_comparison_revised.png"
-  ),
-  p_sma_skh_method_cumulative_revised,
-  width = 9,
-  height = 5.5,
-  dpi = 300
-)
-
- 
- 
-ggsave(
-  file.path(
-    sma_gam_figure_dir,
-    "sma_skh_hscr_gam_annual_group_comparison_revised.png"
-  ),
-  p_sma_skh_method_annual_revised,
-  width = 9,
-  height = 5.5,
-  dpi = 300
-)
+sma_gam_output_dir <- "outputs/sma/gam"
+sma_gam_figure_dir <- "outputs/sma/gam/figures"
+dir.create(sma_gam_output_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(sma_gam_figure_dir, recursive = TRUE, showWarnings = FALSE)
+#    
 
 # # Tables/data
 # "sma_skh_hscr_gam_group_decomposition.csv"
@@ -3738,11 +3703,7 @@ write_csv(
 # 39. Save model objects  and summary tables. 
 # =============================================================================
 
-sma_gam_output_dir <- "outputs/sma/gam"
-sma_gam_figure_dir <- "outputs/sma/gam/figures"
-dir.create(sma_gam_output_dir, recursive = TRUE, showWarnings = FALSE)
-dir.create(sma_gam_figure_dir, recursive = TRUE, showWarnings = FALSE)
-#    
+
 saveRDS(
   sma_shark_gam4,
   "outputs/sma/gam/sma_shark_gam4.rds"
@@ -3758,10 +3719,7 @@ write_csv(
   "outputs/sma/gam/sma_skh_gam_annual.csv"
 )
 
-write_csv(
-  sma_mak_gam_annual,
-  "outputs/sma/gam/sma_mak_gam_annual.csv"
-)
+ 
 write_csv(
   sma_skh_gam_by_group,
   "outputs/sma/gam/sma_skh_gam_sensitivity_by_group.csv"
@@ -3782,16 +3740,6 @@ write_csv(
 )
 
 write_csv(
-  sma_mako_lofo_summary,
-  "outputs/sma/gam/sma_mako_lofo_summary.csv"
-)
-
-write_csv(
-  sma_mako_lofo_by_group,
-  "outputs/sma/gam/sma_mako_lofo_by_group.csv"
-)
-
-write_csv(
   sma_mako_model_comparison,
   "outputs/sma/gam/sma_mako_model_comparison.csv"
 )
@@ -3807,15 +3755,7 @@ write_csv(
   "outputs/sma/gam/sma_mako_response_summary.csv"
 )
 
-write_csv(
-  sma_shark_lofo_summary,
-  "outputs/sma/gam/sma_shark_lofo_summary.csv"
-)
-
-write_csv(
-  sma_shark_lofo_by_group,
-  "outputs/sma/gam/sma_shark_lofo_by_group.csv"
-)
+ 
 write_csv(
   sma_shark_model_comparison,
   "outputs/sma/gam/sma_shark_model_comparison.csv"
@@ -3830,10 +3770,73 @@ write_csv(
   sma_gam_inventory,
   "outputs/sma/gam/sma_gam_training_inventory.csv"
 )
+
+if (run_cross_validation) {
+
+  write_csv(
+    sma_mako_lofo_summary,
+    "outputs/sma/gam/sma_mako_lofo_summary.csv"
+  )
+
+  write_csv(
+    sma_mako_lofo_by_group,
+    "outputs/sma/gam/sma_mako_lofo_by_group.csv"
+  )
+
+  write_csv(
+    sma_shark_lofo_summary,
+    "outputs/sma/gam/sma_shark_lofo_summary.csv"
+  )
+
+  write_csv(
+    sma_shark_lofo_by_group,
+    "outputs/sma/gam/sma_shark_lofo_by_group.csv"
+  )
+}
+
+
 # -----------------------------------------------------------------------------
 # 39.9 Save annual comparison outputs
 # -----------------------------------------------------------------------------
 
+# # Figures
+# "sma_skh_hscr_gam_annual_comparison_revised.png"
+# "sma_skh_hscr_gam_cumulative_comparison_revised.png"
+# "sma_skh_hscr_gam_annual_group_comparison_revised.png"
+
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_annual_comparison_revised.png"
+  ),
+  p_sma_skh_method_annual_revised,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_cumulative_comparison_revised.png"
+  ),
+  p_sma_skh_method_cumulative_revised,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+ggsave(
+  file.path(
+    sma_gam_figure_dir,
+    "sma_skh_hscr_gam_annual_group_comparison_revised.png"
+  ),
+  p_sma_skh_method_annual_group_revised,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
 
 
 ggsave(
@@ -3874,28 +3877,24 @@ ggsave(
 
 
 
-ggsave(
+if (run_cross_validation) {
 
-  "outputs/sma/gam/figures/sma_shark_gam_lofo.png",
+  ggsave(
+    "outputs/sma/gam/figures/sma_shark_gam_lofo.png",
+    p_sma_shark_lofo,
+    width = 8,
+    height = 6,
+    dpi = 300
+  )
 
-  p_sma_shark_lofo,
-
-  width = 8,
-  height = 6,
-  dpi = 300
-)
-
-
-ggsave(
-
-  "outputs/sma/gam/figures/sma_mako_gam_lofo.png",
-
-  p_sma_mako_lofo,
-
-  width = 8,
-  height = 6,
-  dpi = 300
-)
+  ggsave(
+    "outputs/sma/gam/figures/sma_mako_gam_lofo.png",
+    p_sma_mako_lofo,
+    width = 8,
+    height = 6,
+    dpi = 300
+  )
+}
 
 
 

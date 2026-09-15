@@ -1,18 +1,14 @@
 # =============================================================================
-# sma_hscr_nonreporting.R
+# sma_ratio_nonreporting.R
 #
-# HSCR reconstruction of completely unreported SMA catches.
+# Ratio-based reconstruction of completely unreported shortfin mako catch
 #
-# Applies only to strata with target fishing and no:
+# Estimates SMA catch in strata with target fishing activity but no reported
+# SMA, MAK, or generic shark (SKH) catch, using SMA-to-target catch ratios
+# estimated from comparable donor strata.
 #
-#   SMA
-#   MAK
-#   SKH
-#
-# Ratio modeled as:
-#
-#   SMA / target catch
-#
+# This script addresses COMPLETE NON-REPORTING of shark catch.
+# It is distinct from the HSCR allocation of generic SKH catch to SMA.
 # =============================================================================
 
 library(dplyr)
@@ -584,7 +580,7 @@ sma_ratio_donors |>
   arrange(
     desc(pooled_ratio)
   ) |>
-  print(n = Inf)
+  print(n = Inf) # printing can be ommited
 # 
 # check the pooled ratios across the types of LL for the different periods. ? any big changes? 
 sma_ratio_donors |>
@@ -689,19 +685,4 @@ write_csv(
 
 
 
-# check and re-check. 
-sma_nonreport_summary
-
-sma_reconstruction_summary # this comes from R\reconstruction\reconstruct_sma_scenarios.R
-
-sma_scenario_base |>
-  count(invalid_nonreport_overlap)
-
-sma_ratio_candidates |>
-  count(
-    ratio_source,
-    ratio_support,
-    temporal_support,
-    sort = TRUE
-  )
 

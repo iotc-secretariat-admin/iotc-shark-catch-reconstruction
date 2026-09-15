@@ -20,6 +20,13 @@ source("R/processing/harmonize_iotc_codes.R")
 source("R/processing/build_reconstruction_strata.R")
 
 
+# =============================================================================
+# Runtime options
+# =============================================================================
+
+run_cross_validation <- FALSE
+
+
 # -----------------------------------------------------------------------------
 # 2. Blue shark reconstruction
 # -----------------------------------------------------------------------------
@@ -28,21 +35,33 @@ source("R/reconstruction/bsh_shark_nei_disaggregation.R")
 source("R/reconstruction/bsh_nei_scenarios.R")
 source("R/reconstruction/bsh_nei_historical_sensitivity.R")
 source("R/reconstruction/bsh_ratio_reconstruction.R")
+
+
+  cat(
+    "\n\n=========================================================\n",
+    " Running R/reconstruction/bsh_gam_species_composition.R",
+    "\n=========================================================\n"
+  )
+
 source("R/reconstruction/bsh_gam_species_composition.R")
 source("R/reconstruction/reconstruct_bsh_scenarios.R")
 
-
+cat ("\n\n=========================================================\n",
+"\nFinished  Blue shark reconstruction \n",
+"\n\n=========================================================\n" )
 # -----------------------------------------------------------------------------
 # 3. Shortfin mako reconstruction
 # -----------------------------------------------------------------------------
 
 source("R/reconstruction/sma_reporting_states.R")
 source("R/reconstruction/sma_hscr_species_composition.R")
-source("R/reconstruction/sma_hscr_nonreporting.R")
+source("R/reconstruction/sma_ratio_nonreporting.R")
 source("R/reconstruction/sma_gam_species_composition.R")
 source("R/reconstruction/reconstruct_sma_scenarios.R")
 
-
+cat ("\n\n=========================================================\n",
+   "\nFinished  mako shark reconstruction \n",
+   "\n\n=========================================================\n")
 # -----------------------------------------------------------------------------
 # 4. Confirm final output exists
 # -----------------------------------------------------------------------------
