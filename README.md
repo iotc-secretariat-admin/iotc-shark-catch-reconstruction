@@ -36,13 +36,15 @@ The recommended workflow is:
 
 3. **Place or verify the source data.** The analysis uses the IOTC retained-catch (RC), geo-referenced catch (CA), and effort (EF) datasets identified in the repository documentation. Source-data filenames and versions should be checked before reproducing the analysis because subsequent IOTC data revisions may change the resulting reconstruction.
 
-4. **Run the master workflow.** From R with the working directory set to the repository root, run:
+4. **Run the production workflow.** From R with the working directory set to the repository root, run:
 
    ```r
    source("R/run_reconstruction.R")
    ```
 
-   This script executes the principal data-processing and reconstruction components in their required order and produces the final reconstructed catch outputs.
+   This script executes the principal data-processing and reconstruction components in their required order and produces the final reconstructed catch outputs.  
+   
+   **Note**: Running the complete reconstruction may take considerable time, depending on the workstation. The statistical sensitivity analyses, particularly repeated GAM cross-validation, account for much of the computational time.  
 
 5. **Review the outputs and diagnostics.** Final reconstructed catch series are written to `outputs/`, while species-specific and diagnostic results are retained in the corresponding subdirectories. Supporting exploratory and validation analyses are contained separately under `R/exploration/` and `R/diagnostics/`.
 
