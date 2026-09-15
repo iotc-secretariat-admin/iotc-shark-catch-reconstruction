@@ -134,41 +134,19 @@ sma_scenario_base <- sma_base |>
   )
 
 
+ 
 # =============================================================================
-# 7. Explicit overlap diagnostics
-# =============================================================================
-
-sma_scenario_base <- sma_scenario_base |>
-  mutate(
-
-    overlap_flag =
-      rowSums(
-        cbind(
-          !is.na(
-            sma_from_mak
-          ) &
-            sma_from_mak > 0,
-
-          !is.na(
-            sma_from_skh_N1
-          ) &
-            sma_from_skh_N1 > 0,
-
-          !is.na(
-            sma_nonreport_estimate
-          ) &
-            sma_nonreport_estimate > 0
-        )
-      ) > 1
-  )
-
-# =============================================================================
-# Revised overlap diagnostics
+# 7. Component exclusivity diagnostics
+#
+# MAK and SKH allocations may legitimately occur in the same stratum because
+# they reconstruct SMA from distinct reported taxonomic catch categories.
+#
+# Complete non-reporting reconstruction must, however, be mutually exclusive
+# from reported SMA, MAK, SKH, and their associated taxonomic reconstructions.
 # =============================================================================
 
 sma_scenario_base <- sma_scenario_base |>
   mutate(
-
     has_taxonomic_reconstruction =
       coalesce(sma_from_mak, 0) > 0 |
       coalesce(sma_from_skh_N1, 0) > 0,
@@ -186,36 +164,17 @@ sma_scenario_base <- sma_scenario_base |>
       )
   )
 
-sma_scenario_base |>
-  count(invalid_nonreport_overlap)
-
-
-
-sma_scenario_base |>
-  count(
-    overlap_flag
-  )
-
-
 if (
   any(
-    sma_scenario_base$overlap_flag,
+    sma_scenario_base$invalid_nonreport_overlap,
     na.rm = TRUE
   )
 ) {
-
   warning(
-    "Overlapping SMA reconstruction components detected."
+    "Complete non-reporting SMA reconstruction overlaps with reported or taxonomically reconstructed shark catch."
   )
 }
-
-# glimpse(sma_scenario_base)
-
-sma_scenario_base %>% dplyr::filter(overlap_flag == TRUE)
-
-
-# Come back here and fix this  we should not have any overlaps. 
-
+ 
 
 # =============================================================================
 # 8. Scenarios
@@ -383,10 +342,16 @@ sma_reconstruction_summary <- sma_scenario_base |>
         na.rm = TRUE
       ),
 
-    combined_empirical_mt =
+    combined_N1_mt =
       reported_sma_mt +
       added_from_mak_mt +
       added_from_skh_N1_mt +
+      added_from_nonreport_mt,
+
+    combined_N2_mt =
+      reported_sma_mt +
+      added_from_mak_mt +
+      added_from_skh_N2_mt +
       added_from_nonreport_mt
   )
 
@@ -513,7 +478,35 @@ write_csv(
 )
 
 
+#-------------- save plots
+sma_output_dir <- "outputs/sma/fig" 
+dir.create(sma_output_dir, recursive = TRUE, showWarnings = FALSE)
 
+ggsave(
+  file.path(
+    sma_output_dir,
+    "sma_sources_reconstruction.png"
+  ),
+  p_sma_components,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+ggsave(
+  file.path(
+    sma_output_dir,
+    "sma_scenarios.png"
+  ),
+  p_sma_scenarios,
+  width = 9,
+  height = 5.5,
+  dpi = 300
+)
+
+
+
+#----------------------------
 
 # check
 
@@ -537,25 +530,52 @@ sma_reconstruction_summary
 sma_component_summary <-
   sma_scenario_base |>
   summarise(
-    reported_mt = sum(rc_sma, na.rm = TRUE),
-    mak_allocation_mt = sum(sma_from_mak, na.rm = TRUE),
-    skh_N1_mt = sum(sma_from_skh_N1, na.rm = TRUE),
-    skh_N2_mt = sum(sma_from_skh_N2, na.rm = TRUE),
-    nonreport_mt = sum(sma_nonreport_estimate, na.rm = TRUE),
-    total_N1_mt = sum(
-      rc_sma +
-        sma_from_mak +
-        sma_from_skh_N1 +
+
+    reported_mt =
+      sum(
+        rc_sma,
+        na.rm = TRUE
+      ),
+
+    mak_allocation_mt =
+      sum(
+        sma_from_mak,
+        na.rm = TRUE
+      ),
+
+    skh_N1_mt =
+      sum(
+        sma_from_skh_N1,
+        na.rm = TRUE
+      ),
+
+    skh_N2_mt =
+      sum(
+        sma_from_skh_N2,
+        na.rm = TRUE
+      ),
+
+    nonreport_mt =
+      sum(
         sma_nonreport_estimate,
-      na.rm = TRUE
-    ),
-    total_N2_mt = sum(
-      rc_sma +
-        sma_from_mak +
-        sma_from_skh_N2 +
-        sma_nonreport_estimate,
-      na.rm = TRUE
-    )
+        na.rm = TRUE
+      ),
+
+    total_N1_mt =
+      sum(
+        coalesce(rc_sma, 0) +
+          coalesce(sma_from_mak, 0) +
+          coalesce(sma_from_skh_N1, 0) +
+          coalesce(sma_nonreport_estimate, 0)
+      ),
+
+    total_N2_mt =
+      sum(
+        coalesce(rc_sma, 0) +
+          coalesce(sma_from_mak, 0) +
+          coalesce(sma_from_skh_N2, 0) +
+          coalesce(sma_nonreport_estimate, 0)
+      )
   )
 
 write_csv(

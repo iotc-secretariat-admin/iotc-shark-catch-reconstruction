@@ -2441,7 +2441,7 @@ print(
 # -----------------------------------------------------------------------------
 
 sma_skh_hscr_annual <-
-  sma_scenario_base |>
+  sma_skh_candidates |>
   group_by(
     YEAR
   ) |>
@@ -2449,7 +2449,7 @@ sma_skh_hscr_annual <-
 
     skh_mt =
       sum(
-        rc_shark_nei,
+        generic_shark_mt,
         na.rm = TRUE
       ),
 
@@ -2905,18 +2905,16 @@ print(
 # -----------------------------------------------------------------------------
 
 sma_skh_hscr_annual_group <-
-  sma_scenario_base |>
-
+  sma_skh_candidates |>
   group_by(
     YEAR,
     FISHERY_GROUP_CODE
   ) |>
-
   summarise(
 
     skh_mt =
       sum(
-        rc_shark_nei,
+        generic_shark_mt,
         na.rm = TRUE
       ),
 
@@ -2934,7 +2932,6 @@ sma_skh_hscr_annual_group <-
 
     .groups = "drop"
   )
-
 
 # -----------------------------------------------------------------------------
 # 31.2 GAM annual estimates by fishery group

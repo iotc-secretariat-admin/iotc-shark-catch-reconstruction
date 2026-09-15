@@ -1,15 +1,26 @@
 # =============================================================================
 # bsh_ratio_reconstruction.R
-# Blue shark ratio-based reconstruction
 #
-# Estimate unreported BSH catch using BSH : target-catch ratios from
-# comparable reporting strata.
+# Ratio-based reconstruction of completely unreported blue shark catch
+#
+# PURPOSE
+# -------
+# Estimate BSH catch in strata with target fishing activity but no reported
+# BSH, SMA, or generic shark catch. Reconstruction uses BSH-to-target catch
+# ratios estimated from comparable donor strata with species-specific
+# BSH reporting.
+#
+# This script addresses COMPLETE NON-REPORTING of shark catch.
+# It does NOT allocate generic Sharks NEI (SKH) to BSH; that component is
+# handled separately using the hierarchical species-composition
+# reconstruction (HSCR).
 #
 # Input:
-#   reconstruction_strata
+#   - reconstruction_strata
 #
-# Output:
-#   bsh_ratio_results
+# Main outputs:
+#   - bsh_ratio_results
+#
 # =============================================================================
 
 library(dplyr)
