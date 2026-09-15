@@ -690,6 +690,44 @@ cv_support_by_group <- gam_train |>
 
 cv_support_by_group
 
+
+# =============================================================================
+# Prediction formula for unseen fleets
+# =============================================================================
+
+gam_predictive_formula <-
+  p_bsh_beta ~
+    FISHERY_GROUP_CODE +
+
+    s(
+      YEAR,
+      by = FISHERY_GROUP_CODE,
+      k = 8,
+      bs = "tp"
+    ) +
+
+    s(
+      prop_tropical,
+      k = 5
+    ) +
+
+    s(
+      prop_swo,
+      k = 5
+    ) +
+
+    s(
+      prop_alb,
+      k = 5
+    ) +
+
+    s(
+      prop_sbf,
+      k = 5
+    )
+
+
+
 # =============================================================================
 # 12. Leave-one-fleet-out cross-validation
 # start with Model 4. w/o random effect. the unseen fleet anc on have an estiamted random effect. 
@@ -774,7 +812,7 @@ cv_results <- map_dfr(
     # -----------------------------------------------------------------------
 
     model_i <- gam(
-      gam_cv_formula,
+      gam_predictive_formula,
 
       family =
         betar(link = "logit"),
@@ -1167,7 +1205,7 @@ gam_nei_supported <- gam_nei_prediction_data |>
 # =============================================================================
 
 gam_production <- gam(
-  gam_cv_formula,
+  gam_predictive_formula,
 
   family =
     betar(link = "logit"),
@@ -1792,40 +1830,6 @@ summary(gam4_final)
 gam.check(gam4_final)
 
 
-# =============================================================================
-# Prediction formula for unseen fleets
-# =============================================================================
-
-gam_predictive_formula <-
-  p_bsh_beta ~
-    FISHERY_GROUP_CODE +
-
-    s(
-      YEAR,
-      by = FISHERY_GROUP_CODE,
-      k = 8,
-      bs = "tp"
-    ) +
-
-    s(
-      prop_tropical,
-      k = 5
-    ) +
-
-    s(
-      prop_swo,
-      k = 5
-    ) +
-
-    s(
-      prop_alb,
-      k = 5
-    ) +
-
-    s(
-      prop_sbf,
-      k = 5
-    )
 
 # run the Cross validation. 
 cv_final <- cv_gam_model(
