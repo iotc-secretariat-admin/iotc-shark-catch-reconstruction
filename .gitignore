@@ -49,15 +49,25 @@ Thumbs.db
 *.temp
 *~
 
-
-
-
-
+# Keep raw IOTC source data
 # Raw IOTC data
-data/raw/rc/*
-data/raw/ca/*
-data/raw/ef/*
-data/raw/external/*
+# RC is retained in the repository.
+# Large CA and EF source files must be obtained separately.
+
+# Ignore generated/intermediate data by default
+# data/*
+# # Large CA and EF source files must be obtained separately.
+data/raw/ca/*.csv
+data/raw/ef/*.csv
+
+# Keep RC source data
+!data/raw/rc/
+!data/raw/rc/*.csv
+
+# Reproducible intermediate R objects
+outputs/**/*.rds
+
+  
 
 # Large intermediate data
 data/interim/*
@@ -105,6 +115,10 @@ docs/.vdoc*
 *_cache/
 *.knit.md
 *.utf8.md
+
+# =============================================================================
+# Reproducible intermediate R objects
+outputs/**/*.rds
 
 
 # =============================================================================
