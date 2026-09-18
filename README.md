@@ -36,7 +36,12 @@ The recommended workflow is:
 
 3. **Place or verify the source data.** The analysis uses the IOTC retained-catch (RC), geo-referenced catch (CA), and effort (EF) datasets identified in the repository documentation. Source-data filenames and versions should be checked before reproducing the analysis because subsequent IOTC data revisions may change the resulting reconstruction.
 
-> **IMPORTANT** The IOTC retained-catch (RC) dataset used in this analysis is included in data/raw/rc/. The catch-and-effort datasets ([CA and EF](https://iotc.org/sites/default/files/documents/2026/08/IOTC-DATASETS-2026-08-13-CE-1952-2025.zip)) are not version controlled because of their size and must be obtained separately from IOTC. The analysis used the 13 August 2026 releases covering 1952–2025, with the expected filenames, and locations of *data/raw/ca/IOTC-DATASETS-2026-08-13-CA-1952-2025.csv* and *data/raw/ef/IOTC-DATASETS-2026-08-13-EF-1952-2025.csv*. These files must be unzipped and placed within the correct locations.
+> > **IMPORTANT:** The IOTC retained-catch (RC) dataset used in this analysis is included in `data/raw/rc/`. The catch-and-effort datasets ([CA and EF](https://iotc.org/sites/default/files/documents/2026/08/IOTC-DATASETS-2026-08-13-CE-1952-2025.zip)) are not version controlled because of their size and must be obtained separately from IOTC. The analysis used the 13 August 2026 releases covering 1952–2025. After downloading and unzipping the archive, the CA and EF files must be placed at the following locations:
+>
+> - `data/raw/ca/IOTC-DATASETS-2026-08-13-CA-1952-2025.csv`
+> - `data/raw/ef/IOTC-DATASETS-2026-08-13-EF-1952-2025.csv`
+>
+> The production workflow expects these filenames and directory locations.
 
 4. **Run the production workflow.** From R with the working directory set to the repository root, run:
 
